@@ -18,6 +18,7 @@ set(SourceFiles
         source/D3D12/D3D12Backend.ixx
         source/D3D12/D3D12BackendTypes.ixx
         source/RHINOTypesImpl.ixx
+        source/main.cpp
 )
 
 add_library(RHINO ${SourceFiles} ${HeaderFiles} ${InterfaceHeaderFiles})

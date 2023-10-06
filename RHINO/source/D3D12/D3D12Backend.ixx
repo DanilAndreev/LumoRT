@@ -6,8 +6,7 @@ import D3D12BackendTypes;
 
 namespace RHINO::APID3D12 {
     D3D12_HEAP_TYPE ToD3D12HeapType(ResourceHeapType value) noexcept {
-        switch (value)
-        {
+        switch (value) {
             case ResourceHeapType::Default:
                 return D3D12_HEAP_TYPE_DEFAULT;
             case ResourceHeapType::Upload:
@@ -74,14 +73,27 @@ namespace RHINO::APID3D12 {
             return result;
         }
 
+        void ReleaseBuffer(Buffer* buffer) noexcept final {
+            if (!buffer) return;
+            auto* d3d12Buffer = static_cast<D3D12Buffer*>(buffer);
+            d3d12Buffer->buffer->Release();
+            delete d3d12Buffer;
+        }
+
         Buffer* CreateTexture2D() noexcept final {
+        }
+
+        void ReleaseTexture2D(Texture2D* texture) noexcept final {
+            if (!texture) return;
+            auto* d3d12Texture = static_cast<D3D12Texture2D*>(texture);
+            d3d12Texture->texture->Release();
+            delete d3d12Texture;
         }
 
         RTPSO* CompileRTPSO() noexcept final {
         }
 
-        void SetDebugName(ID3D12DeviceChild* resource, const std::string& name) noexcept
-        {
+        void SetDebugName(ID3D12DeviceChild* resource, const std::string& name) noexcept {
             resource->SetPrivateData(WKPDID_D3DDebugObjectName, name.length(), name.c_str());
         }
     };
