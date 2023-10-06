@@ -31,6 +31,25 @@ namespace RHINO::APID3D12 {
         ID3D12Device* m_Device;
 
     public:
+        D3D12Backend() noexcept : m_Device(nullptr) {}
+
+    public:
+        RTPSO* CompileRTPSO() noexcept final {
+            return nullptr;
+        }
+
+        void ReleaseRTPSO(RTPSO* pso) noexcept final {
+            delete pso;
+        }
+
+        ComputePSO* CompileComputePSO() noexcept final {
+            return nullptr;
+        }
+
+        void ReleaseComputePSO(ComputePSO* pso) noexcept final {
+        }
+
+    public:
         Buffer* CreateBuffer(size_t size, ResourceHeapType heapType, ResourceUsage usage, size_t structuredStride, const char* name) noexcept final {
             RHINO_UNUSED_VAR(structuredStride);
 
@@ -90,9 +109,22 @@ namespace RHINO::APID3D12 {
             delete d3d12Texture;
         }
 
-        RTPSO* CompileRTPSO() noexcept final {
+        DescriptorHeap* CreateDescriptorHeap() noexcept final {
+            return nullptr;
+        }
+        void ReleaseDescriptorHeap(DescriptorHeap* heap) noexcept final {
+            delete heap;
         }
 
+    public:
+        void DispatchCompute() noexcept final {
+        }
+        void DispatchComputeIndirect() noexcept final {
+        }
+        void TraceRays() noexcept final {
+        }
+
+    private:
         void SetDebugName(ID3D12DeviceChild* resource, const std::string& name) noexcept {
             resource->SetPrivateData(WKPDID_D3DDebugObjectName, name.length(), name.c_str());
         }

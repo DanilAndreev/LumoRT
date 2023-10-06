@@ -10,6 +10,7 @@ namespace RHINO {
 
     class RHINOInterface {
     public:
+        RHINOInterface() = default;
         RHINOInterface(const RHINOInterface&) = delete;
         RHINOInterface(const RHINOInterface&&) = delete;
         virtual ~RHINOInterface() noexcept = default;
