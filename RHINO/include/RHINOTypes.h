@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdlib>
+
 namespace RHINO {
     class Buffer;
     class Texture2D;

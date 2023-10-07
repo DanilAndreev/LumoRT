@@ -1,4 +1,7 @@
 export module D3D12Backend;
+
+#ifdef WIN32
+
 import D3D12BackendTypes;
 
 #define RHINO_VALIDATE_D3D_RESULT(expr) expr
@@ -130,3 +133,5 @@ namespace RHINO::APID3D12 {
         }
     };
 }// namespace RHINO::APID3D12
+
+#endif // WIN32

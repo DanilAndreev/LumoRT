@@ -1,5 +1,7 @@
 export module D3D12BackendTypes;
 
+#ifdef WIN32
+
 namespace RHINO::APID3D12 {
     export class D3D12Buffer : public Buffer {
     public:
@@ -15,3 +17,5 @@ namespace RHINO::APID3D12 {
         void* mapped = nullptr;
     };
 }// namespace RHINO::APID3D12
+
+#endif // WIN32
