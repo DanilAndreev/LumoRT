@@ -9,6 +9,7 @@ namespace RHINO {
 
     class RTPSO;
     class ComputePSO;
+    class CommandList;
 
     enum class TextureFormat {
 

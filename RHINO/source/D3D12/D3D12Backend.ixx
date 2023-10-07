@@ -53,7 +53,7 @@ namespace RHINO::APID3D12 {
         }
 
     public:
-        Buffer* CreateBuffer(size_t size, ResourceHeapType heapType, ResourceUsage usage, size_t structuredStride, const char* name) noexcept final {
+        D3D12Buffer* CreateBuffer(size_t size, ResourceHeapType heapType, ResourceUsage usage, size_t structuredStride, const char* name) noexcept final {
             RHINO_UNUSED_VAR(structuredStride);
 
             auto* result = new D3D12Buffer{};
@@ -102,7 +102,7 @@ namespace RHINO::APID3D12 {
             delete d3d12Buffer;
         }
 
-        Buffer* CreateTexture2D() noexcept final {
+        D3D12Buffer* CreateTexture2D() noexcept final {
             return nullptr;
         }
 
@@ -113,11 +113,23 @@ namespace RHINO::APID3D12 {
             delete d3d12Texture;
         }
 
-        DescriptorHeap* CreateDescriptorHeap() noexcept final {
-            return nullptr;
+        D3D12DescriptorHeap* CreateDescriptorHeap() noexcept final {
+            auto* result = new D3D12DescriptorHeap{};
+            return result;
         }
         void ReleaseDescriptorHeap(DescriptorHeap* heap) noexcept final {
+            if (!heap) return;
             delete heap;
+        }
+
+        D3D12CommandList* AllocateCommandList() noexcept final {
+            auto* result = new D3D12CommandList{};
+            return result;
+        }
+
+        void ReleaseCommandList(D3D12CommandList* commandList) noexcept final {
+            if (!commandList) return;
+            delete commandList;
         }
 
     public:

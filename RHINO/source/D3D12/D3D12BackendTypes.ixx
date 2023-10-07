@@ -16,6 +16,22 @@ namespace RHINO::APID3D12 {
         D3D12_RESOURCE_DESC desc;
         void* mapped = nullptr;
     };
+
+    export class D3D12DescriptorHeap {
+    public:
+    };
+
+    export class D3D12RTPSO {
+    public:
+    };
+
+    export class D3D12ComputePSO {
+    public:
+    };
+
+    export class D3D12CommandList {
+    public:
+    };
 }// namespace RHINO::APID3D12
 
-#endif // RHINO_PLATFORM_WINDOWS
+#endif// RHINO_PLATFORM_WINDOWS
