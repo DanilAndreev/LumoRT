@@ -133,7 +133,7 @@ namespace RHINO::APID3D12 {
             delete d3d12Texture;
         }
 
-        D3D12DescriptorHeap* CreateDescriptorHeap(DescriptorHeapType heapType, const PipelineLayoutDesc& pipelineLayoutDesc, const char* name) noexcept final {
+        D3D12DescriptorHeap* CreateDescriptorHeap(DescriptorHeapType heapType/*, const PipelineLayoutDesc& pipelineLayoutDesc*/, const char* name) noexcept final {
             auto* result = new D3D12DescriptorHeap{};
 
             size_t elementsCount = 0;

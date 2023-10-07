@@ -29,7 +29,7 @@ namespace RHINO {
         virtual Buffer* CreateTexture2D() noexcept = 0;
         virtual void ReleaseTexture2D(Texture2D* texture) noexcept = 0;
 
-        virtual DescriptorHeap* CreateDescriptorHeap() noexcept = 0;
+        virtual DescriptorHeap* CreateDescriptorHeap(DescriptorHeapType type, const char* name) noexcept = 0;
         virtual void ReleaseDescriptorHeap(DescriptorHeap* heap) noexcept = 0;
 
         virtual CommandList* AllocateCommandList(const char* name = "") noexcept = 0;
