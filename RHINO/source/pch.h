@@ -10,11 +10,11 @@
 
 #include <iostream>
 
-#include "Utils/PlatfromBase.h"
+#include "Utils/PlatformBase.h"
 #include "Utils/Common.h"
 #include "RHINOTypesImpl.h"
 
 
-#ifdef RHINO_PLATFORM_WINDOWS
+#ifdef ENABLE_API_D3D12
 #include <d3d12.h>
-#endif // RHINO_PLATFORM_WINDOWS
+#endif // ENABLE_API_D3D12

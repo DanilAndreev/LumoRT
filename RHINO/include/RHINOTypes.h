@@ -34,4 +34,13 @@ namespace RHINO {
         CopyDest = 0x80,
         ValidMask = 0xFF,
     };
+
+    enum class DescriptorHeapType
+    {
+        SRV_CBV_UAV,
+        RTV,
+        DSV,
+        Sampler,
+        Count,
+    };
 }

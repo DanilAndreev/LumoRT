@@ -1,24 +1,26 @@
-#ifndef RHINO_PLATFORM_APPLE
+#ifdef ENABLE_API_D3D12
 import D3D12Backend;
-#else
+#endif // ENABLE_API_D3D12
+
+#ifdef ENABLE_API_METAL
 #include "Metal/AllocateMetalBackend.h"
-#endif // RHINO_PLATFORM_APPLE
+#endif // ENABLE_API_METAL
 
 
 
 namespace RHINO {
     RHINOInterface* CreateRHINO(BackendAPI backendApi) noexcept {
         switch (backendApi) {
-#ifdef RHINO_PLATFORM_WINDOWS
+#ifdef ENABLE_API_D3D12
             case BackendAPI::D3D12: {
                 return new APID3D12::D3D12Backend{};
             }
-#endif // RHINO_PLATFORM_WINDOWS
-#ifdef RHINO_PLATFORM_APPLE
+#endif // ENABLE_API_D3D12
+#ifdef ENABLE_API_METAL
             case BackendAPI::Metal:
                 assert(0 && "Metal is not supported. UNDER CONSTRUCTION");
                 return APIMetal::AllocateMetalBackend();
-#endif // RHINO_PLATFORM_APPLE
+#endif // ENABLE_API_METAL
             default:
                 assert(0 && "Invalid API or selected API is not supported on this platform.");
                 return nullptr;

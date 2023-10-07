@@ -1,3 +1,7 @@
+#pragma once
+
+#ifdef ENABLE_API_METAL
+
 namespace RHINO::APIMetal {
     class MetalBuffer : public Buffer {
     public:
@@ -7,3 +11,5 @@ namespace RHINO::APIMetal {
     public:
     };
 }// namespace RHINO::APIMetal
+
+#endif // ENABLE_API_METAL

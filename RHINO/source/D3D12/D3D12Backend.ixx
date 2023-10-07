@@ -1,13 +1,15 @@
 export module D3D12Backend;
 
-#ifdef RHINO_PLATFORM_WINDOWS
-
 import D3D12BackendTypes;
+
+#ifdef ENABLE_API_D3D12
 
 #define RHINO_VALIDATE_D3D_RESULT(expr) expr
 #define RHINO_GPU_DEBUG(expr) expr
 
 namespace RHINO::APID3D12 {
+    using namespace std::string_literals;
+
     D3D12_HEAP_TYPE ToD3D12HeapType(ResourceHeapType value) noexcept {
         switch (value) {
             case ResourceHeapType::Default:
@@ -27,6 +29,24 @@ namespace RHINO::APID3D12 {
         if (bool(value & ResourceUsage::UnorderedAccess))
             nativeFlags |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
         return nativeFlags;
+    }
+
+    D3D12_DESCRIPTOR_HEAP_TYPE ToD3D12DescriptorHeapType(DescriptorHeapType type) noexcept
+    {
+        switch (type)
+        {
+            case DescriptorHeapType::SRV_CBV_UAV:
+                return D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+            case DescriptorHeapType::RTV:
+                return D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+            case DescriptorHeapType::DSV:
+                return D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
+            case DescriptorHeapType::Sampler:
+                return D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER;
+            default:
+                assert(0);
+                return D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+        }
     }
 
     export class D3D12Backend : public RHINOInterface {
@@ -113,8 +133,40 @@ namespace RHINO::APID3D12 {
             delete d3d12Texture;
         }
 
-        D3D12DescriptorHeap* CreateDescriptorHeap() noexcept final {
+        D3D12DescriptorHeap* CreateDescriptorHeap(DescriptorHeapType heapType, const PipelineLayoutDesc& pipelineLayoutDesc, const char* name) noexcept final {
             auto* result = new D3D12DescriptorHeap{};
+
+            size_t elementsCount = 0;
+//            for (size_t i = 0; i < pipelineLayoutDesc.setsDescsCount; ++i)
+//            {
+//                UINT maxBindingSlot = 0;
+//                for (size_t j = 0; j < pipelineLayoutDesc.setDescs[i].bindingDescsCount; ++j)
+//                {
+//                    const DescriptorBindingDesc& bindingDesc = pipelineLayoutDesc.setDescs[i].bindingDescs[j];
+//                    maxBindingSlot = std::max(maxBindingSlot, bindingDesc.slot);
+//                }
+//                elementsCount += maxBindingSlot + 1;
+//            }
+
+            D3D12_DESCRIPTOR_HEAP_TYPE nativeHeapType = ToD3D12DescriptorHeapType(heapType);
+            D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
+            heapDesc.NumDescriptors = elementsCount;
+            heapDesc.Type = nativeHeapType;
+            heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+            RHINO_VALIDATE_D3D_RESULT(m_Device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&result->CPUDescriptorHeap)));
+
+            heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+            RHINO_VALIDATE_D3D_RESULT(m_Device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&result->GPUDescriptorHeap)));
+
+            result->descriptorHandleIncrementSize = m_Device->GetDescriptorHandleIncrementSize(nativeHeapType);
+
+            result->CPUHeapCPUStartHandle = result->CPUDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
+
+            result->GPUHeapCPUStartHandle = result->GPUDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
+            result->GPUHeapGPUStartHandle = result->GPUDescriptorHeap->GetGPUDescriptorHandleForHeapStart();
+
+            SetDebugName(result->CPUDescriptorHeap, name + ".CPUDescriptorHeap"s);
+            SetDebugName(result->GPUDescriptorHeap, name + ".GPUDescriptorHeap"s);
             return result;
         }
         void ReleaseDescriptorHeap(DescriptorHeap* heap) noexcept final {
@@ -122,14 +174,25 @@ namespace RHINO::APID3D12 {
             delete heap;
         }
 
-        D3D12CommandList* AllocateCommandList() noexcept final {
+        D3D12CommandList* AllocateCommandList(const char* name) noexcept final {
             auto* result = new D3D12CommandList{};
+
+            RHINO_VALIDATE_D3D_RESULT(m_Device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&result->allocator)));
+            RHINO_VALIDATE_D3D_RESULT(m_Device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, result->allocator, nullptr,
+                                                                  IID_PPV_ARGS(&result->cmd)));
+            result->cmd->Close();
+
+            SetDebugName(result->allocator, "CMDAllocator_"s + name);
+            SetDebugName(result->cmd, "CMD_"s + name);
             return result;
         }
 
-        void ReleaseCommandList(D3D12CommandList* commandList) noexcept final {
+        void ReleaseCommandList(CommandList* commandList) noexcept final {
             if (!commandList) return;
-            delete commandList;
+            auto* d3d12CommandList = static_cast<D3D12CommandList*>(commandList);
+            d3d12CommandList->cmd->Release();
+            d3d12CommandList->allocator->Release();
+            delete d3d12CommandList;
         }
 
     public:
@@ -147,4 +210,4 @@ namespace RHINO::APID3D12 {
     };
 }// namespace RHINO::APID3D12
 
-#endif // RHINO_PLATFORM_WINDOWS
+#endif // ENABLE_API_D3D12

@@ -32,7 +32,7 @@ namespace RHINO {
         virtual DescriptorHeap* CreateDescriptorHeap() noexcept = 0;
         virtual void ReleaseDescriptorHeap(DescriptorHeap* heap) noexcept = 0;
 
-        virtual CommandList* AllocateCommandList() noexcept = 0;
+        virtual CommandList* AllocateCommandList(const char* name = "") noexcept = 0;
         virtual void ReleaseCommandList(CommandList* commandList) noexcept = 0;
     public:
         // GPU JOB SUBMISSION

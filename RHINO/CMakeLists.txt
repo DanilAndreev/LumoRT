@@ -11,7 +11,8 @@ set(HeaderFiles
         source/pch.h
 
         source/RHINOTypesImpl.h
-        source/Utils/Common.h)
+        source/Utils/Common.h
+        source/Utils/PlatformBase.h)
 
 set(ObjCHeaderFiles
         source/Metal/MetalBackendTypes.h)
@@ -25,18 +26,20 @@ set(ModuleSourceFiles
 set(SourceFiles
         source/main.cpp
         source/RHINOTypesImpl.cpp
-        source/Utils/PlatfromBase.h
+        source/Utils/PlatformBase.h
         source/Metal/MetalBackend.h
         source/Metal/AllocateMetalBackend.h)
 
 if(APPLE)
-    add_library(RHINO ${SourceFiles} ${HeaderFiles} ${InterfaceHeaderFiles} ${ObjCHeaderFiles} ${ObjCSourceFiles})
+    add_library(RHINO ${SourceFiles} ${HeaderFiles} ${ObjCHeaderFiles} ${ObjCSourceFiles} ${InterfaceHeaderFiles})
     set_source_files_properties(${ObjCHeaderFiles} PROPERTIES HEADER_FILE_ONLY TRUE)
     target_compile_options(RHINO PUBLIC -fmodules -std=c++20)
+    target_compile_definitions(RHINO PRIVATE ENABLE_API_METAL=1)
 else()
-    add_library(RHINO ${SourceFiles} ${HeaderFiles} ${InterfaceHeaderFiles} ${ModuleSourceFiles})
+    add_library(RHINO ${SourceFiles} ${HeaderFiles} ${ModuleSourceFiles} ${InterfaceHeaderFiles})
+    target_compile_definitions(RHINO PRIVATE ENABLE_API_D3D12=1)
 endif()
-set_source_files_properties(${HeaderFiles} PROPERTIES HEADER_FILE_ONLY TRUE)
+# set_source_files_properties(${HeaderFiles} PROPERTIES HEADER_FILE_ONLY TRUE)
 target_precompile_headers(RHINO PRIVATE source/pch.h)
 target_include_directories(RHINO PUBLIC include)
 target_include_directories(RHINO PUBLIC source)

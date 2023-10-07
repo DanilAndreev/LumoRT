@@ -1,5 +1,7 @@
 #import "MetalBackendTypes.h"
 
+#ifdef ENABLE_API_METAL
+
 namespace RHINO::APIMetal {
 
     class MetalBackend : public RHINOInterface {
@@ -57,3 +59,5 @@ namespace RHINO::APIMetal {
         return new MetalBackend{};
     }
 }// namespace RHINO::APID3D12
+
+#endif // ENABLE_API_METAL
