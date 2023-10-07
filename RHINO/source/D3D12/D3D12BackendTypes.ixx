@@ -1,6 +1,6 @@
 export module D3D12BackendTypes;
 
-#ifdef WIN32
+#ifdef RHINO_PLATFORM_WINDOWS
 
 namespace RHINO::APID3D12 {
     export class D3D12Buffer : public Buffer {
@@ -18,4 +18,4 @@ namespace RHINO::APID3D12 {
     };
 }// namespace RHINO::APID3D12
 
-#endif // WIN32
+#endif // RHINO_PLATFORM_WINDOWS

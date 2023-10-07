@@ -1,6 +1,6 @@
 export module D3D12Backend;
 
-#ifdef WIN32
+#ifdef RHINO_PLATFORM_WINDOWS
 
 import D3D12BackendTypes;
 
@@ -103,6 +103,7 @@ namespace RHINO::APID3D12 {
         }
 
         Buffer* CreateTexture2D() noexcept final {
+            return nullptr;
         }
 
         void ReleaseTexture2D(Texture2D* texture) noexcept final {
@@ -134,4 +135,4 @@ namespace RHINO::APID3D12 {
     };
 }// namespace RHINO::APID3D12
 
-#endif // WIN32
+#endif // RHINO_PLATFORM_WINDOWS

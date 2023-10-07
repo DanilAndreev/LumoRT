@@ -32,6 +32,7 @@ set(SourceFiles
 if(APPLE)
     add_library(RHINO ${SourceFiles} ${HeaderFiles} ${InterfaceHeaderFiles} ${ObjCHeaderFiles} ${ObjCSourceFiles})
     set_source_files_properties(${ObjCHeaderFiles} PROPERTIES HEADER_FILE_ONLY TRUE)
+    target_compile_options(RHINO PUBLIC -fmodules -std=c++20)
 else()
     add_library(RHINO ${SourceFiles} ${HeaderFiles} ${InterfaceHeaderFiles} ${ModuleSourceFiles})
 endif()
@@ -40,6 +41,5 @@ target_precompile_headers(RHINO PRIVATE source/pch.h)
 target_include_directories(RHINO PUBLIC include)
 target_include_directories(RHINO PUBLIC source)
 
-target_compile_options(RHINO PUBLIC -fmodules -std=c++20)
 
 target_link_libraries(RHINO PRIVATE d3d12.lib dxgi.lib)

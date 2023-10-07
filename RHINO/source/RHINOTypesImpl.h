@@ -10,5 +10,5 @@ namespace RHINO {
     class RTPSO {};
     class ComputePSO {};
 
-    RHINO_DEFINE_BITMASK_ENUM(ResourceUsage);
 }
+RHINO_DECLARE_BITMASK_ENUM(RHINO::ResourceUsage);
