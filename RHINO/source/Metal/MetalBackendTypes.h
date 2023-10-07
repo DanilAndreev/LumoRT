@@ -15,9 +15,15 @@ namespace RHINO::APIMetal {
         id<MTLTexture> texture;
     };
 
+    class MetalDescriptorHeap : public DescriptorHeap {
+    public:
+        id<MTLBuffer> argBuf = nil;
+        id<MTLArgumentEncoder> encoder = nil;
+    };
+
     class MetalCommandList : public CommandList {
     public:
-        id<MTLCommandBuffer> cmd;
+        id<MTLCommandBuffer> cmd = nil;
     };
 }// namespace RHINO::APIMetal
 

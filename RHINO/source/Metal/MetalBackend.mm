@@ -45,7 +45,35 @@ namespace RHINO::APIMetal {
         delete texture;
     }
     DescriptorHeap* MetalBackend::CreateDescriptorHeap(DescriptorHeapType type, const char* name) noexcept {
-        return nullptr;
+        auto* result = new MetalDescriptorHeap{};
+
+        //TODO: add to func param
+        size_t descriptorsCount = 100;
+
+        MTLArgumentDescriptor* arg = [MTLArgumentDescriptor argumentDescriptor];
+        arg.index = 0;
+        arg.access = MTLArgumentAccessReadOnly;
+        switch (type) {
+            case DescriptorHeapType::Sampler:
+                arg.dataType = MTLDataTypeSampler;
+            case DescriptorHeapType::RTV:
+            case DescriptorHeapType::DSV:
+            case DescriptorHeapType::SRV_CBV_UAV:
+                arg.dataType = MTLDataTypePointer;
+        }
+
+        result->encoder = [m_Device newArgumentEncoderWithArguments:@[arg]];
+        result->argBuf = [m_Device newBufferWithLength:result->encoder.encodedLength*descriptorsCount
+                                                       options:0];
+        [result->argBuf setLabel:[NSString stringWithUTF8String:name]];
+
+        // TO WRITE
+/*
+        [result->encoder setArgumentBuffer:result->argBuf offset:i * result->encoder.encodedLength];
+        [result->encoder setBuffer:target offset:0 atIndex:0];
+*/
+
+        return result;
     }
     void MetalBackend::ReleaseDescriptorHeap(DescriptorHeap* heap) noexcept {
     }
