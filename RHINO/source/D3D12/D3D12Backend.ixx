@@ -57,7 +57,8 @@ namespace RHINO::APID3D12 {
         D3D12Backend() noexcept : m_Device(nullptr) {}
 
     public:
-        RTPSO* CompileRTPSO() noexcept final {
+        RTPSO* CompileRTPSO(const RTPSODesc& desc) noexcept final {
+
             return nullptr;
         }
 
@@ -65,11 +66,26 @@ namespace RHINO::APID3D12 {
             delete pso;
         }
 
-        ComputePSO* CompileComputePSO() noexcept final {
-            return nullptr;
+        ComputePSO* CompileComputePSO(const ComputePSODesc& desc) noexcept final {
+            auto* result = new D3D12ComputePSO{};
+            result->rootSignature = CreateRootSignature(desc.spacesCount, desc.spaces);
+
+            D3D12_COMPUTE_PIPELINE_STATE_DESC psoDesc{};
+            psoDesc.pRootSignature = result->rootSignature;
+            psoDesc.CS.pShaderBytecode = desc.CS.bytecode;
+            psoDesc.CS.BytecodeLength = desc.CS.bytecodeSize;
+
+            ZIB_VALIDATE_D3D_RESULT(m_Device->CreateComputePipelineState(&psoDesc, IID_PPV_ARGS(&result->PSO)));
+
+            ZIB_CHEAP_GPU_DEBUG_ONLY(SetDebugName(result->PSO, desc.debugName));
+            ZIB_CHEAP_GPU_DEBUG_ONLY(SetDebugName(result->rootSignature, desc.debugName + ".RootSignature"s));
+            return result;
         }
 
         void ReleaseComputePSO(ComputePSO* pso) noexcept final {
+            auto* d3d12PSO = static_cast<D3D12ComputePSO*>(pso);
+            d3d12PSO->PSO->Release();
+            d3d12PSO->rootSignature->Release();
         }
 
     public:
@@ -133,24 +149,12 @@ namespace RHINO::APID3D12 {
             delete d3d12Texture;
         }
 
-        D3D12DescriptorHeap* CreateDescriptorHeap(DescriptorHeapType heapType/*, const PipelineLayoutDesc& pipelineLayoutDesc*/, const char* name) noexcept final {
+        D3D12DescriptorHeap* CreateDescriptorHeap(DescriptorHeapType heapType, size_t descriptorsCount, const char* name) noexcept final {
             auto* result = new D3D12DescriptorHeap{};
-
-            size_t elementsCount = 0;
-//            for (size_t i = 0; i < pipelineLayoutDesc.setsDescsCount; ++i)
-//            {
-//                UINT maxBindingSlot = 0;
-//                for (size_t j = 0; j < pipelineLayoutDesc.setDescs[i].bindingDescsCount; ++j)
-//                {
-//                    const DescriptorBindingDesc& bindingDesc = pipelineLayoutDesc.setDescs[i].bindingDescs[j];
-//                    maxBindingSlot = std::max(maxBindingSlot, bindingDesc.slot);
-//                }
-//                elementsCount += maxBindingSlot + 1;
-//            }
 
             D3D12_DESCRIPTOR_HEAP_TYPE nativeHeapType = ToD3D12DescriptorHeapType(heapType);
             D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
-            heapDesc.NumDescriptors = elementsCount;
+            heapDesc.NumDescriptors = descriptorsCount;
             heapDesc.Type = nativeHeapType;
             heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
             RHINO_VALIDATE_D3D_RESULT(m_Device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&result->CPUDescriptorHeap)));
@@ -206,6 +210,55 @@ namespace RHINO::APID3D12 {
     private:
         void SetDebugName(ID3D12DeviceChild* resource, const std::string& name) noexcept {
             resource->SetPrivateData(WKPDID_D3DDebugObjectName, name.length(), name.c_str());
+        }
+
+        ID3D12RootSignature* CreateRootSignature(size_t spacesCount, const DescriptorSpaceDesc* spaces) noexcept
+        {
+            std::vector<D3D12_DESCRIPTOR_RANGE> rangeDescs{};
+            rangeDescs.reserve(spacesCount);
+            for (size_t i = 0; i < spacesCount; ++i) {
+                D3D12_DESCRIPTOR_RANGE rangeDesc{};
+                rangeDesc.NumDescriptors = spaces[i].bindingsCount;
+                rangeDesc.RegisterSpace = spaces[i].space;
+                rangeDesc.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+                switch (spaces[i].spaceType) {
+                    case DescriptorSpaceType::SRV:
+                        rangeDesc.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE::D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+                        break;
+                    case DescriptorSpaceType::UAV:
+                        rangeDesc.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE::D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
+                        break;
+                    case DescriptorSpaceType::CBV:
+                        rangeDesc.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE::D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
+                        break;
+                    case DescriptorSpaceType::Sampler:
+                        rangeDesc.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE::D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER;
+                        break;
+                }
+                rangeDescs.push_back(rangeDesc);
+            }
+
+            D3D12_ROOT_PARAMETER rootParamDesc{};
+
+            // Descriptor table
+            rootParamDesc.ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+            rootParamDesc.DescriptorTable.NumDescriptorRanges = rangeDescs.size();
+            rootParamDesc.DescriptorTable.pDescriptorRanges = rangeDescs.data();
+
+            D3D12_ROOT_SIGNATURE_DESC rootSignatureDesc{};
+            rootSignatureDesc.NumParameters = 1;
+            rootSignatureDesc.pParameters = &rootParamDesc;
+            rootSignatureDesc.NumStaticSamplers = 0;
+            rootSignatureDesc.pStaticSamplers = nullptr;
+            rootSignatureDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS | D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
+                                      D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS | D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
+
+            ID3DBlob* serializedRootSig = nullptr;
+            RHINO_VALIDATE_D3D_RESULT(D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1_0, &serializedRootSig, nullptr));
+
+            ID3D12RootSignature* result = nullptr;
+            RHINO_VALIDATE_D3D_RESULT(m_Device->CreateRootSignature(0, serializedRootSig->GetBufferPointer(), serializedRootSig->GetBufferSize(), IID_PPV_ARGS(&result)));
+            return result;
         }
     };
 }// namespace RHINO::APID3D12

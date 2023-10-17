@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <cstdlib>
 
 namespace RHINO {
@@ -42,5 +43,63 @@ namespace RHINO {
         DSV,
         Sampler,
         Count,
+    };
+
+    enum class DescriptorSpaceType {
+        SRV,
+        UAV,
+        CBV,
+        Sampler,
+    };
+
+    enum class ResourceType {
+        Buffer,
+        Texture2D,
+        Texture3D
+    };
+
+    struct DescriptorBindingDesc {
+        size_t slot;
+        ResourceType type;
+    };
+
+    struct DescriptorSpaceDesc {
+        size_t space;
+        DescriptorSpaceType spaceType;
+        size_t bindingsCount;
+        const DescriptorBindingDesc* bindings;
+    };
+
+    struct ShaderModule {
+        const size_t bytecodeSize;
+        const uint8_t* bytecode;
+        const char* entrypoint;
+    };
+
+    struct RTPSODesc {
+        size_t spacesCount;
+        const DescriptorSpaceDesc* spaces;
+        const char* debugName;
+    };
+
+    struct ComputePSODesc {
+        size_t spacesCount;
+        const DescriptorSpaceDesc* spaces;
+        ShaderModule CS;
+        const char* debugName;
+    };
+
+    struct DispatchDesc {
+        ComputePSO* pso;
+        size_t dimensionsX;
+        size_t dimensionsY;
+        size_t dimensionsZ;
+    };
+
+    class CommandList {
+    public:
+        virtual void Dispatch(const DispatchDesc& desc) noexcept = 0;
+        virtual void Draw() noexcept = 0;
+        virtual void SetHeap(DescriptorHeap* heap) noexcept = 0;
     };
 }

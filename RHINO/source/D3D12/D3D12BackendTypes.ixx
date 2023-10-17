@@ -55,12 +55,29 @@ namespace RHINO::APID3D12 {
 
     export class D3D12ComputePSO : public ComputePSO {
     public:
+        ID3D12RootSignature* rootSignature = nullptr;
+        ID3D12PipelineState* PSO = nullptr;
     };
 
     export class D3D12CommandList : public CommandList {
     public:
         ID3D12CommandAllocator* allocator = nullptr;
         ID3D12GraphicsCommandList* cmd = nullptr;
+    public:
+        void Dispatch(const DispatchDesc& desc) noexcept final {
+            auto* d3d12ComputePSO = static_cast<D3D12ComputePSO*>(desc.pso);
+            cmd->SetComputeRootSignature(d3d12ComputePSO->rootSignature);
+            cmd->SetPipelineState(d3d12ComputePSO->PSO);
+            cmd->Dispatch(desc.dimensionsX, desc.dimensionsY, desc.dimensionsZ);
+        }
+
+        void Draw() noexcept final {
+        }
+
+        void SetHeap(DescriptorHeap* heap) noexcept final {
+            auto* d3d12DescriptorHeap = static_cast<D3D12DescriptorHeap*>(heap);
+            cmd->SetDescriptorHeaps(1, &d3d12DescriptorHeap->GPUDescriptorHeap);
+        }
     };
 }// namespace RHINO::APID3D12
 
