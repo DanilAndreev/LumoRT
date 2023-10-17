@@ -14,6 +14,9 @@ namespace RHINO {
         RHINOInterface(const RHINOInterface&) = delete;
         RHINOInterface(const RHINOInterface&&) = delete;
         virtual ~RHINOInterface() noexcept = default;
+    public:
+        virtual void Initialize() noexcept = 0;
+        virtual void Release() noexcept = 0;
 
     public:
         // PSO MANAGEMENT
@@ -26,7 +29,7 @@ namespace RHINO {
         // RESOURCE MANAGEMENT
         virtual Buffer* CreateBuffer(size_t size, ResourceHeapType heapType, ResourceUsage usage, size_t structuredStride, const char* name) noexcept = 0;
         virtual void ReleaseBuffer(Buffer* buffer) noexcept = 0;
-        virtual Buffer* CreateTexture2D() noexcept = 0;
+        virtual Texture2D* CreateTexture2D() noexcept = 0;
         virtual void ReleaseTexture2D(Texture2D* texture) noexcept = 0;
 
         virtual DescriptorHeap* CreateDescriptorHeap(DescriptorHeapType type, size_t descriptorsCount, const char* name) noexcept = 0;
