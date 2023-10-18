@@ -102,4 +102,32 @@ namespace RHINO {
         virtual void Draw() noexcept = 0;
         virtual void SetHeap(DescriptorHeap* heap) noexcept = 0;
     };
+
+    struct WriteBufferSRVDesc {
+        Buffer* buffer = nullptr;
+        size_t offsetInHeap = 0;
+    };
+
+    struct WriteTexture2DSRVDesc {
+        Texture2D* texture = nullptr;
+        size_t offsetInHeap = 0;
+    };
+
+    struct WriteTexture3DSRVDesc {
+        Texture2D* texture = nullptr;
+        size_t offsetInHeap = 0;
+    };
+
+    class DescriptorHeap {
+    public:
+        virtual void WriteSRV(const WriteBufferSRVDesc& desc) noexcept = 0;
+        virtual void WriteUAV(const WriteBufferSRVDesc& desc) noexcept = 0;
+        virtual void WriteCBV(const WriteBufferSRVDesc& desc) noexcept = 0;
+
+        virtual void WriteSRV(const WriteTexture2DSRVDesc& desc) noexcept = 0;
+        virtual void WriteUAV(const WriteTexture2DSRVDesc& desc) noexcept = 0;
+
+        virtual void WriteSRV(const WriteTexture3DSRVDesc& desc) noexcept = 0;
+        virtual void WriteUAV(const WriteTexture3DSRVDesc& desc) noexcept = 0;
+    };
 }
