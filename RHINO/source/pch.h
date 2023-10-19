@@ -1,5 +1,7 @@
 #pragma once
 
+#define NOMINMAX
+
 #include "RHINO.h"
 #include "RHINOTypes.h"
 
@@ -18,3 +20,7 @@
 #ifdef ENABLE_API_D3D12
 #include <d3d12.h>
 #endif // ENABLE_API_D3D12
+
+#ifdef ENABLE_API_VULKAN
+#include <vulkan/vulkan.h>
+#endif // ENABLE_API_VULKAN

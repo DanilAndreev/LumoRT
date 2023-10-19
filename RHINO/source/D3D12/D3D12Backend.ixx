@@ -31,10 +31,8 @@ namespace RHINO::APID3D12 {
         return nativeFlags;
     }
 
-    D3D12_DESCRIPTOR_HEAP_TYPE ToD3D12DescriptorHeapType(DescriptorHeapType type) noexcept
-    {
-        switch (type)
-        {
+    D3D12_DESCRIPTOR_HEAP_TYPE ToD3D12DescriptorHeapType(DescriptorHeapType type) noexcept {
+        switch (type) {
             case DescriptorHeapType::SRV_CBV_UAV:
                 return D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
             case DescriptorHeapType::RTV:
@@ -57,6 +55,12 @@ namespace RHINO::APID3D12 {
         D3D12Backend() noexcept : m_Device(nullptr) {}
 
     public:
+        void Initialize() noexcept override {
+        }
+        void Release() noexcept override {
+        }
+
+    public:
         RTPSO* CompileRTPSO(const RTPSODesc& desc) noexcept final {
 
             return nullptr;
@@ -75,10 +79,10 @@ namespace RHINO::APID3D12 {
             psoDesc.CS.pShaderBytecode = desc.CS.bytecode;
             psoDesc.CS.BytecodeLength = desc.CS.bytecodeSize;
 
-            ZIB_VALIDATE_D3D_RESULT(m_Device->CreateComputePipelineState(&psoDesc, IID_PPV_ARGS(&result->PSO)));
+            m_Device->CreateComputePipelineState(&psoDesc, IID_PPV_ARGS(&result->PSO));
 
-            ZIB_CHEAP_GPU_DEBUG_ONLY(SetDebugName(result->PSO, desc.debugName));
-            ZIB_CHEAP_GPU_DEBUG_ONLY(SetDebugName(result->rootSignature, desc.debugName + ".RootSignature"s));
+            SetDebugName(result->PSO, desc.debugName);
+            SetDebugName(result->rootSignature, desc.debugName + ".RootSignature"s);
             return result;
         }
 
@@ -138,7 +142,7 @@ namespace RHINO::APID3D12 {
             delete d3d12Buffer;
         }
 
-        D3D12Buffer* CreateTexture2D() noexcept final {
+        D3D12Texture2D* CreateTexture2D() noexcept final {
             return nullptr;
         }
 
@@ -212,8 +216,7 @@ namespace RHINO::APID3D12 {
             resource->SetPrivateData(WKPDID_D3DDebugObjectName, name.length(), name.c_str());
         }
 
-        ID3D12RootSignature* CreateRootSignature(size_t spacesCount, const DescriptorSpaceDesc* spaces) noexcept
-        {
+        ID3D12RootSignature* CreateRootSignature(size_t spacesCount, const DescriptorSpaceDesc* spaces) noexcept {
             std::vector<D3D12_DESCRIPTOR_RANGE> rangeDescs{};
             rangeDescs.reserve(spacesCount);
             for (size_t i = 0; i < spacesCount; ++i) {
@@ -263,4 +266,4 @@ namespace RHINO::APID3D12 {
     };
 }// namespace RHINO::APID3D12
 
-#endif // ENABLE_API_D3D12
+#endif// ENABLE_API_D3D12

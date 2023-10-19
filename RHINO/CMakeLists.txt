@@ -21,14 +21,17 @@ set(ObjCSourceFiles
 
 set(ModuleSourceFiles
         source/D3D12/D3D12Backend.ixx
-        source/D3D12/D3D12BackendTypes.ixx)
+        source/D3D12/D3D12BackendTypes.ixx
+        source/Vulkan/VulkanBackend.ixx
+        source/Vulkan/VulkanBackendTypes.ixx)
 
 set(SourceFiles
         source/main.cpp
         source/RHINOTypesImpl.cpp
         source/Utils/PlatformBase.h
         source/Metal/MetalBackend.h
-        source/Metal/AllocateMetalBackend.h)
+        source/Metal/AllocateMetalBackend.h
+        ../Test/main.cpp)
 
 if(APPLE)
     add_library(RHINO ${SourceFiles} ${HeaderFiles} ${ObjCHeaderFiles} ${ObjCSourceFiles} ${InterfaceHeaderFiles})
@@ -37,7 +40,12 @@ if(APPLE)
     target_compile_definitions(RHINO PRIVATE ENABLE_API_METAL=1)
 else()
     add_library(RHINO ${SourceFiles} ${HeaderFiles} ${ModuleSourceFiles} ${InterfaceHeaderFiles})
-    target_compile_definitions(RHINO PRIVATE ENABLE_API_D3D12=1)
+    target_compile_definitions(RHINO PRIVATE ENABLE_API_D3D12=1 ENABLE_API_VULKAN=1)
+    target_link_libraries(RHINO PRIVATE d3d12.lib dxgi.lib)
+
+    find_package(Vulkan REQUIRED)
+    target_include_directories(RHINO PRIVATE ${Vulkan_INCLUDE_DIRS})
+    target_link_libraries(RHINO PRIVATE Vulkan::Vulkan)
 endif()
 # set_source_files_properties(${HeaderFiles} PROPERTIES HEADER_FILE_ONLY TRUE)
 target_precompile_headers(RHINO PRIVATE source/pch.h)
@@ -45,4 +53,4 @@ target_include_directories(RHINO PUBLIC include)
 target_include_directories(RHINO PUBLIC source)
 
 
-target_link_libraries(RHINO PRIVATE d3d12.lib dxgi.lib)
+

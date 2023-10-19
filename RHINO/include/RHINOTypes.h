@@ -105,6 +105,7 @@ namespace RHINO {
 
     struct WriteBufferSRVDesc {
         Buffer* buffer = nullptr;
+        size_t bufferOffset = 0;
         size_t offsetInHeap = 0;
     };
 

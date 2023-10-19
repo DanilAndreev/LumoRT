@@ -5,6 +5,7 @@
 namespace RHINO {
     enum class BackendAPI {
         D3D12,
+        Vulkan,
         Metal
     };
 
