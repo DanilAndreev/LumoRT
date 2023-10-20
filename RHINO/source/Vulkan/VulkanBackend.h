@@ -31,13 +31,10 @@ namespace RHINO::APIVulkan {
 
         CommandList* AllocateCommandList(const char* name) noexcept final;
         void ReleaseCommandList(CommandList* commandList) noexcept final;
-        void DispatchCompute() noexcept final;
-        void DispatchComputeIndirect() noexcept final;
-        void TraceRays() noexcept final;
 
     private:
         uint32_t SelectMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) noexcept;
-
+        size_t CalculateDescriptorHandleIncrementSize(DescriptorHeapType heapType) noexcept;
     private:
         VkInstance m_Instance = VK_NULL_HANDLE;
         VkDevice m_Device = VK_NULL_HANDLE;

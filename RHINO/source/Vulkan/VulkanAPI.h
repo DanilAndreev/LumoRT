@@ -4,14 +4,15 @@
 
 #define RHINO_VULKAN_API_FUNCS()    \
     RHINO_APPLY(vkGetDescriptorEXT) \
-    RHINO_APPLY(vkCreateBuffer)     \
     RHINO_APPLY(vkCmdBindDescriptorBuffersEXT)
 
 
 namespace RHINO::APIVulkan {
-#define RHINO_APPLY(f) ::PFN_##f f;
-    RHINO_VULKAN_API_FUNCS()
+    namespace EXT {
+#define RHINO_APPLY(f) extern ::PFN_##f f;
+        RHINO_VULKAN_API_FUNCS()
 #undef RHINO_APPLY
+    }// namespace EXT
 
     void LoadVulkanAPI(VkInstance instance, PFN_vkGetInstanceProcAddr getProcAddr) noexcept;
 }// namespace RHINO::APIVulkan

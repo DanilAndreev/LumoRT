@@ -2,6 +2,10 @@
 
 #include "D3D12Backend.h"
 #include "D3D12BackendTypes.h"
+#include "D3D12DescriptorHeap.h"
+#include "D3D12CommandList.h"
+
+#pragma comment( lib, "dxguid.lib")
 
 #define RHINO_VALIDATE_D3D_RESULT(expr) expr
 #define RHINO_GPU_DEBUG(expr) expr

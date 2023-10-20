@@ -1,6 +1,7 @@
 #ifdef ENABLE_API_D3D12
 
 #include "D3D12DescriptorHeap.h"
+#include "D3D12BackendTypes.h"
 
 namespace RHINO::APID3D12 {
     void D3D12DescriptorHeap::WriteSRV(const WriteBufferSRVDesc& desc) noexcept {

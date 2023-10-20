@@ -22,6 +22,6 @@
 #endif // ENABLE_API_D3D12
 
 #ifdef ENABLE_API_VULKAN
-// #define VK_NO_PROTOTYPES
+//#define VK_NO_PROTOTYPES
 #include <vulkan/vulkan.h>
 #endif // ENABLE_API_VULKAN

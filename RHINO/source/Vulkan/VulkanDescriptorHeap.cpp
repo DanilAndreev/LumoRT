@@ -1,6 +1,8 @@
 #ifdef ENABLE_API_VULKAN
 
 #include "VulkanDescriptorHeap.h"
+#include "VulkanAPI.h"
+
 namespace RHINO::APIVulkan {
     void VulkanDescriptorHeap::WriteSRV(const RHINO::WriteBufferSRVDesc& desc) noexcept {
         auto* vulkanBuffer = static_cast<VulkanBuffer*>(desc.buffer);
@@ -13,7 +15,7 @@ namespace RHINO::APIVulkan {
         info.data.pStorageBuffer = &bufferInfo;
 
         uint8_t* mem = static_cast<uint8_t*>(mapped);
-        vkGetDescriptorEXT(device, &info, descriptorHandleIncrementSize, mem + desc.offsetInHeap * descriptorHandleIncrementSize);
+        EXT::vkGetDescriptorEXT(device, &info, descriptorHandleIncrementSize, mem + desc.offsetInHeap * descriptorHandleIncrementSize);
     }
     void VulkanDescriptorHeap::WriteUAV(const WriteBufferSRVDesc& desc) noexcept {
         auto* vulkanBuffer = static_cast<VulkanBuffer*>(desc.buffer);
@@ -26,7 +28,7 @@ namespace RHINO::APIVulkan {
         info.data.pStorageBuffer = &bufferInfo;
 
         uint8_t* mem = static_cast<uint8_t*>(mapped);
-        vkGetDescriptorEXT(device, &info, descriptorHandleIncrementSize, mem + desc.offsetInHeap * descriptorHandleIncrementSize);
+        EXT::vkGetDescriptorEXT(device, &info, descriptorHandleIncrementSize, mem + desc.offsetInHeap * descriptorHandleIncrementSize);
     }
     void VulkanDescriptorHeap::WriteCBV(const WriteBufferSRVDesc& desc) noexcept {
         auto* vulkanBuffer = static_cast<VulkanBuffer*>(desc.buffer);
@@ -39,7 +41,7 @@ namespace RHINO::APIVulkan {
         info.data.pUniformBuffer = &bufferInfo;
 
         uint8_t* mem = static_cast<uint8_t*>(mapped);
-        vkGetDescriptorEXT(device, &info, descriptorHandleIncrementSize, mem + desc.offsetInHeap * descriptorHandleIncrementSize);
+        EXT::vkGetDescriptorEXT(device, &info, descriptorHandleIncrementSize, mem + desc.offsetInHeap * descriptorHandleIncrementSize);
     }
     void VulkanDescriptorHeap::WriteSRV(const WriteTexture2DSRVDesc& desc) noexcept {
         auto* vulkanTexture = static_cast<VulkanTexture2D*>(desc.texture);
@@ -52,7 +54,7 @@ namespace RHINO::APIVulkan {
         info.data.pSampledImage = &textureInfo;
 
         uint8_t* mem = static_cast<uint8_t*>(mapped);
-        vkGetDescriptorEXT(device, &info, descriptorHandleIncrementSize, mem + desc.offsetInHeap * descriptorHandleIncrementSize);
+        EXT::vkGetDescriptorEXT(device, &info, descriptorHandleIncrementSize, mem + desc.offsetInHeap * descriptorHandleIncrementSize);
     }
     void VulkanDescriptorHeap::WriteUAV(const WriteTexture2DSRVDesc& desc) noexcept {
         auto* vulkanTexture = static_cast<VulkanTexture2D*>(desc.texture);
@@ -65,7 +67,7 @@ namespace RHINO::APIVulkan {
         info.data.pStorageImage = &textureInfo;
 
         uint8_t* mem = static_cast<uint8_t*>(mapped);
-        vkGetDescriptorEXT(device, &info, descriptorHandleIncrementSize, mem + desc.offsetInHeap * descriptorHandleIncrementSize);
+        EXT::vkGetDescriptorEXT(device, &info, descriptorHandleIncrementSize, mem + desc.offsetInHeap * descriptorHandleIncrementSize);
     }
     void VulkanDescriptorHeap::WriteSRV(const WriteTexture3DSRVDesc& desc) noexcept {
     }

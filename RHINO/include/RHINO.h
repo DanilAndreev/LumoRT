@@ -38,11 +38,6 @@ namespace RHINO {
 
         virtual CommandList* AllocateCommandList(const char* name = "") noexcept = 0;
         virtual void ReleaseCommandList(CommandList* commandList) noexcept = 0;
-    public:
-        // GPU JOB SUBMISSION
-        virtual void DispatchCompute() noexcept = 0;
-        virtual void DispatchComputeIndirect() noexcept = 0;
-        virtual void TraceRays() noexcept = 0;
     };
 
     RHINOInterface* CreateRHINO(BackendAPI backendApi) noexcept;

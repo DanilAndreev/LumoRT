@@ -2,8 +2,6 @@
 
 #ifdef ENABLE_API_VULKAN
 
-// #include "VulkanAPI.h"
-
 namespace RHINO::APIVulkan {
     class VulkanDescriptorHeap;
 
