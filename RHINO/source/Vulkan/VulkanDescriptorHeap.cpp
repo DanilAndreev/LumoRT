@@ -9,39 +9,39 @@ namespace RHINO::APIVulkan {
 
         VkDescriptorAddressInfoEXT bufferInfo{VK_STRUCTURE_TYPE_DESCRIPTOR_ADDRESS_INFO_EXT};
         bufferInfo.address = vulkanBuffer->deviceAddress + desc.bufferOffset;
-        bufferInfo.range = VK_WHOLE_SIZE;
+        bufferInfo.range = vulkanBuffer->size - desc.bufferOffset;
         VkDescriptorGetInfoEXT info{VK_STRUCTURE_TYPE_DESCRIPTOR_GET_INFO_EXT};
         info.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
         info.data.pStorageBuffer = &bufferInfo;
 
         uint8_t* mem = static_cast<uint8_t*>(mapped);
-        EXT::vkGetDescriptorEXT(device, &info, descriptorHandleIncrementSize, mem + desc.offsetInHeap * descriptorHandleIncrementSize);
+        EXT::vkGetDescriptorEXT(device, &info, descriptorProps.storageBufferDescriptorSize, mem + desc.offsetInHeap * descriptorHandleIncrementSize);
     }
     void VulkanDescriptorHeap::WriteUAV(const WriteBufferSRVDesc& desc) noexcept {
         auto* vulkanBuffer = static_cast<VulkanBuffer*>(desc.buffer);
 
         VkDescriptorAddressInfoEXT bufferInfo{VK_STRUCTURE_TYPE_DESCRIPTOR_ADDRESS_INFO_EXT};
         bufferInfo.address = vulkanBuffer->deviceAddress + desc.bufferOffset;
-        bufferInfo.range = VK_WHOLE_SIZE;
+        bufferInfo.range = vulkanBuffer->size - desc.bufferOffset;
         VkDescriptorGetInfoEXT info{VK_STRUCTURE_TYPE_DESCRIPTOR_GET_INFO_EXT};
         info.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
         info.data.pStorageBuffer = &bufferInfo;
 
         uint8_t* mem = static_cast<uint8_t*>(mapped);
-        EXT::vkGetDescriptorEXT(device, &info, descriptorHandleIncrementSize, mem + desc.offsetInHeap * descriptorHandleIncrementSize);
+        EXT::vkGetDescriptorEXT(device, &info, descriptorProps.storageBufferDescriptorSize, mem + desc.offsetInHeap * descriptorHandleIncrementSize);
     }
     void VulkanDescriptorHeap::WriteCBV(const WriteBufferSRVDesc& desc) noexcept {
         auto* vulkanBuffer = static_cast<VulkanBuffer*>(desc.buffer);
 
         VkDescriptorAddressInfoEXT bufferInfo{VK_STRUCTURE_TYPE_DESCRIPTOR_ADDRESS_INFO_EXT};
         bufferInfo.address = vulkanBuffer->deviceAddress + desc.bufferOffset;
-        bufferInfo.range = VK_WHOLE_SIZE;
+        bufferInfo.range = vulkanBuffer->size - desc.bufferOffset;
         VkDescriptorGetInfoEXT info{VK_STRUCTURE_TYPE_DESCRIPTOR_GET_INFO_EXT};
         info.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
         info.data.pUniformBuffer = &bufferInfo;
 
         uint8_t* mem = static_cast<uint8_t*>(mapped);
-        EXT::vkGetDescriptorEXT(device, &info, descriptorHandleIncrementSize, mem + desc.offsetInHeap * descriptorHandleIncrementSize);
+        EXT::vkGetDescriptorEXT(device, &info, descriptorProps.uniformBufferDescriptorSize, mem + desc.offsetInHeap * descriptorHandleIncrementSize);
     }
     void VulkanDescriptorHeap::WriteSRV(const WriteTexture2DSRVDesc& desc) noexcept {
         auto* vulkanTexture = static_cast<VulkanTexture2D*>(desc.texture);
@@ -54,7 +54,7 @@ namespace RHINO::APIVulkan {
         info.data.pSampledImage = &textureInfo;
 
         uint8_t* mem = static_cast<uint8_t*>(mapped);
-        EXT::vkGetDescriptorEXT(device, &info, descriptorHandleIncrementSize, mem + desc.offsetInHeap * descriptorHandleIncrementSize);
+        EXT::vkGetDescriptorEXT(device, &info, descriptorProps.sampledImageDescriptorSize, mem + desc.offsetInHeap * descriptorHandleIncrementSize);
     }
     void VulkanDescriptorHeap::WriteUAV(const WriteTexture2DSRVDesc& desc) noexcept {
         auto* vulkanTexture = static_cast<VulkanTexture2D*>(desc.texture);
@@ -67,7 +67,7 @@ namespace RHINO::APIVulkan {
         info.data.pStorageImage = &textureInfo;
 
         uint8_t* mem = static_cast<uint8_t*>(mapped);
-        EXT::vkGetDescriptorEXT(device, &info, descriptorHandleIncrementSize, mem + desc.offsetInHeap * descriptorHandleIncrementSize);
+        EXT::vkGetDescriptorEXT(device, &info, descriptorProps.storageImageDescriptorSize, mem + desc.offsetInHeap * descriptorHandleIncrementSize);
     }
     void VulkanDescriptorHeap::WriteSRV(const WriteTexture3DSRVDesc& desc) noexcept {
     }

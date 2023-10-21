@@ -8,6 +8,9 @@ namespace RHINO::APIVulkan {
     class VulkanBuffer : public Buffer {
     public:
         VkBuffer buffer = VK_NULL_HANDLE;
+        uint32_t size = 0;
+        VkDeviceMemory memory = VK_NULL_HANDLE;
+        void* mapped = nullptr;
         VkDeviceAddress deviceAddress = 0;
     };
 

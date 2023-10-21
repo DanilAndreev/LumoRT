@@ -16,11 +16,14 @@ namespace RHINO::APIVulkan {
         void WriteUAV(const WriteTexture3DSRVDesc& desc) noexcept final;
 
     public:
+        uint32_t heapSize = 0;
         VkBuffer heap = VK_NULL_HANDLE;
         VkDeviceMemory memory = VK_NULL_HANDLE;
         void* mapped = nullptr;
         VkDeviceAddress heapGPUStartHandle = 0;
         size_t descriptorHandleIncrementSize = 0;
+
+        VkPhysicalDeviceDescriptorBufferPropertiesEXT descriptorProps{};
 
         VkDevice device = VK_NULL_HANDLE;
     };

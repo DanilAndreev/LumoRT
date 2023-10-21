@@ -2,8 +2,8 @@
 
 #include "VulkanBackend.h"
 #include "VulkanAPI.h"
-#include "VulkanDescriptorHeap.h"
 #include "VulkanCommandList.h"
+#include "VulkanDescriptorHeap.h"
 
 namespace RHINO::APIVulkan {
 
@@ -41,7 +41,13 @@ namespace RHINO::APIVulkan {
         uint32_t queueInfosCount = 0;
         SelectQueues(queueInfos, &queueInfosCount);
 
+        // PHYSICAL DEVICE FEATURES
+        VkPhysicalDeviceDescriptorBufferFeaturesEXT deviceDescriptorBufferFeaturesExt{VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_BUFFER_FEATURES_EXT};
+        deviceDescriptorBufferFeaturesExt.descriptorBuffer = VK_TRUE;
+        deviceDescriptorBufferFeaturesExt.descriptorBufferPushDescriptors = VK_TRUE;
+
         VkPhysicalDeviceBufferDeviceAddressFeaturesEXT deviceAddressFeaturesExt{VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BUFFER_DEVICE_ADDRESS_FEATURES};
+        deviceAddressFeaturesExt.pNext = &deviceDescriptorBufferFeaturesExt;
         deviceAddressFeaturesExt.bufferDeviceAddress = VK_TRUE;
         VkPhysicalDeviceFeatures2 deviceFeatures2{VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2};
         deviceFeatures2.pNext = &deviceAddressFeaturesExt;
@@ -83,7 +89,39 @@ namespace RHINO::APIVulkan {
     }
 
     Buffer* VulkanBackend::CreateBuffer(size_t size, ResourceHeapType heapType, ResourceUsage usage, size_t structuredStride, const char* name) noexcept {
-        return nullptr;
+        //TODO: use heapType and usage
+
+        auto* result = new VulkanBuffer{};
+        result->size = size;
+
+        VkBufferCreateInfo createInfo{VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO};
+        createInfo.flags = 0;
+        createInfo.usage = VK_BUFFER_USAGE_RESOURCE_DESCRIPTOR_BUFFER_BIT_EXT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
+        createInfo.size = size;
+        createInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+        vkCreateBuffer(m_Device, &createInfo, m_Alloc, &result->buffer);
+
+        VkMemoryRequirements memReqs;
+        vkGetBufferMemoryRequirements(m_Device, result->buffer, &memReqs);
+        VkPhysicalDeviceMemoryProperties memoryProps;
+        vkGetPhysicalDeviceMemoryProperties(m_PhysicalDevice, &memoryProps);
+
+        VkMemoryAllocateFlagsInfo allocateFlagsInfo{VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_FLAGS_INFO};
+        allocateFlagsInfo.flags = VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT;
+
+        VkMemoryAllocateInfo alloc{VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO};
+        alloc.pNext = &allocateFlagsInfo;
+        alloc.allocationSize = memReqs.size;
+        alloc.memoryTypeIndex = SelectMemoryType(0xffffff, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+        vkAllocateMemory(m_Device, &alloc, m_Alloc, &result->memory);
+
+        vkBindBufferMemory(m_Device, result->buffer, result->memory, 0);
+
+        VkBufferDeviceAddressInfo bufferInfo{VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO};
+        bufferInfo.buffer = result->buffer;
+        result->deviceAddress = vkGetBufferDeviceAddress(m_Device, &bufferInfo);
+
+        return result;
     }
 
     void VulkanBackend::ReleaseBuffer(Buffer* buffer) noexcept {
@@ -98,13 +136,23 @@ namespace RHINO::APIVulkan {
 
     DescriptorHeap* VulkanBackend::CreateDescriptorHeap(DescriptorHeapType type, size_t descriptorsCount, const char* name) noexcept {
         auto* result = new VulkanDescriptorHeap{};
+        result->device = m_Device;
 
-        result->descriptorHandleIncrementSize = CalculateDescriptorHandleIncrementSize(type);
+        VkPhysicalDeviceDescriptorBufferPropertiesEXT descriptorProps{VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_BUFFER_PROPERTIES_EXT};
+        VkPhysicalDeviceProperties2 props{VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2};
+        props.pNext = &descriptorProps;
+        vkGetPhysicalDeviceProperties2(m_PhysicalDevice, &props);
+
+        result->descriptorProps = descriptorProps;
+
+        result->descriptorHandleIncrementSize = CalculateDescriptorHandleIncrementSize(type, descriptorProps);
+
+        result->heapSize = result->descriptorHandleIncrementSize * descriptorsCount;
 
         VkBufferCreateInfo heapCreateInfo{VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO};
         heapCreateInfo.flags = 0;
         heapCreateInfo.usage = VK_BUFFER_USAGE_RESOURCE_DESCRIPTOR_BUFFER_BIT_EXT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
-        heapCreateInfo.size = result->descriptorHandleIncrementSize * descriptorsCount;
+        heapCreateInfo.size = result->heapSize;
         heapCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
         vkCreateBuffer(m_Device, &heapCreateInfo, m_Alloc, &result->heap);
 
@@ -159,17 +207,12 @@ namespace RHINO::APIVulkan {
         return std::numeric_limits<uint32_t>::max();
     }
 
-    size_t VulkanBackend::CalculateDescriptorHandleIncrementSize(DescriptorHeapType heapType) noexcept {
-        VkPhysicalDeviceDescriptorBufferPropertiesEXT propsEXT{VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_BUFFER_PROPERTIES_EXT};
-        VkPhysicalDeviceProperties2 props{VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2};
-        props.pNext = &propsEXT;
-        vkGetPhysicalDeviceProperties2(m_PhysicalDevice, &props);
-
+    size_t VulkanBackend::CalculateDescriptorHandleIncrementSize(DescriptorHeapType heapType, const VkPhysicalDeviceDescriptorBufferPropertiesEXT& descriptorProps) noexcept {
         switch (heapType) {
             case DescriptorHeapType::SRV_CBV_UAV:
-                return std::max(propsEXT.uniformBufferDescriptorSize, std::max(propsEXT.storageBufferDescriptorSize, std::max(propsEXT.storageImageDescriptorSize, propsEXT.sampledImageDescriptorSize)));
+                return std::max(descriptorProps.uniformBufferDescriptorSize, std::max(descriptorProps.storageBufferDescriptorSize, std::max(descriptorProps.storageImageDescriptorSize, descriptorProps.sampledImageDescriptorSize)));
             case DescriptorHeapType::Sampler:
-                return propsEXT.samplerDescriptorSize;
+                return descriptorProps.samplerDescriptorSize;
             default:
                 return 0;
         }
@@ -187,22 +230,18 @@ namespace RHINO::APIVulkan {
         uint32_t copyQueueIndex = ~0;
 
         for (size_t i = 0; i < queuesCount; ++i) {
-            if (queues[i].queueFlags & (VK_QUEUE_COMPUTE_BIT | VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_TRANSFER_BIT) && queues[i].queueCount >= 3
-                && graphicsQueueIndex == ~0 && computeQueueIndex == ~0 && copyQueueIndex == ~0) {
+            if (queues[i].queueFlags & (VK_QUEUE_COMPUTE_BIT | VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_TRANSFER_BIT) && queues[i].queueCount >= 3 && graphicsQueueIndex == ~0 && computeQueueIndex == ~0 && copyQueueIndex == ~0) {
                 graphicsQueueIndex = i;
                 computeQueueIndex = i;
                 copyQueueIndex = i;
                 break;
-            } else if (queues[i].queueFlags & (VK_QUEUE_COMPUTE_BIT | VK_QUEUE_GRAPHICS_BIT) && queues[i].queueCount >= 2
-                       && graphicsQueueIndex == ~0 && computeQueueIndex == ~0) {
+            } else if (queues[i].queueFlags & (VK_QUEUE_COMPUTE_BIT | VK_QUEUE_GRAPHICS_BIT) && queues[i].queueCount >= 2 && graphicsQueueIndex == ~0 && computeQueueIndex == ~0) {
                 graphicsQueueIndex = i;
                 computeQueueIndex = i;
-            } else if (queues[i].queueFlags & (VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT) && queues[i].queueCount >= 2
-                       && computeQueueIndex == ~0 && copyQueueIndex == ~0) {
+            } else if (queues[i].queueFlags & (VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT) && queues[i].queueCount >= 2 && computeQueueIndex == ~0 && copyQueueIndex == ~0) {
                 computeQueueIndex = i;
                 copyQueueIndex = i;
-            } else if (queues[i].queueFlags & (VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_TRANSFER_BIT) && queues[i].queueCount >= 2
-                       && graphicsQueueIndex == ~0 && copyQueueIndex == ~0) {
+            } else if (queues[i].queueFlags & (VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_TRANSFER_BIT) && queues[i].queueCount >= 2 && graphicsQueueIndex == ~0 && copyQueueIndex == ~0) {
                 graphicsQueueIndex = i;
                 copyQueueIndex = i;
             } else if (queues[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
