@@ -37,16 +37,27 @@ namespace RHINO::APIVulkan {
         }
         m_PhysicalDevice = m_PhysicalDevice ? m_PhysicalDevice : physicalDevices[0];
 
-        VkPhysicalDeviceFeatures deviceFeatures{};
+        VkDeviceQueueCreateInfo queueInfos[3] = {};
+        uint32_t queueInfosCount = 0;
+        SelectQueues(queueInfos, &queueInfosCount);
 
-        VkDeviceQueueCreateInfo queueInfo{};
-        queueInfo.queueCount;
+        VkPhysicalDeviceBufferDeviceAddressFeaturesEXT deviceAddressFeaturesExt{VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BUFFER_DEVICE_ADDRESS_FEATURES};
+        deviceAddressFeaturesExt.bufferDeviceAddress = VK_TRUE;
+        VkPhysicalDeviceFeatures2 deviceFeatures2{VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2};
+        deviceFeatures2.pNext = &deviceAddressFeaturesExt;
+        deviceFeatures2.features = {};
+
 
         VkDeviceCreateInfo deviceInfo{VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO};
-        const char* deviceExtensions[] = {VK_EXT_DESCRIPTOR_BUFFER_EXTENSION_NAME};
+        deviceInfo.pNext = &deviceFeatures2;
+        const char* deviceExtensions[] = {
+                VK_EXT_DESCRIPTOR_BUFFER_EXTENSION_NAME,
+                VK_EXT_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME,
+        };
         deviceInfo.enabledExtensionCount = RHINO_ARR_SIZE(deviceExtensions);
         deviceInfo.ppEnabledExtensionNames = deviceExtensions;
-        deviceInfo.pEnabledFeatures = &deviceFeatures;
+        deviceInfo.queueCreateInfoCount = queueInfosCount;
+        deviceInfo.pQueueCreateInfos = queueInfos;
         vkCreateDevice(m_PhysicalDevice, &deviceInfo, m_Alloc, &m_Device);
 
         LoadVulkanAPI(m_Instance, vkGetInstanceProcAddr);
@@ -92,7 +103,7 @@ namespace RHINO::APIVulkan {
 
         VkBufferCreateInfo heapCreateInfo{VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO};
         heapCreateInfo.flags = 0;
-        heapCreateInfo.usage = VK_BUFFER_USAGE_RESOURCE_DESCRIPTOR_BUFFER_BIT_EXT;
+        heapCreateInfo.usage = VK_BUFFER_USAGE_RESOURCE_DESCRIPTOR_BUFFER_BIT_EXT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
         heapCreateInfo.size = result->descriptorHandleIncrementSize * descriptorsCount;
         heapCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
         vkCreateBuffer(m_Device, &heapCreateInfo, m_Alloc, &result->heap);
@@ -103,7 +114,11 @@ namespace RHINO::APIVulkan {
         VkPhysicalDeviceMemoryProperties memoryProps;
         vkGetPhysicalDeviceMemoryProperties(m_PhysicalDevice, &memoryProps);
 
+        VkMemoryAllocateFlagsInfo allocateFlagsInfo{VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_FLAGS_INFO};
+        allocateFlagsInfo.flags = VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT;
+
         VkMemoryAllocateInfo alloc{VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO};
+        alloc.pNext = &allocateFlagsInfo;
         alloc.allocationSize = memReqs.size;
         alloc.memoryTypeIndex = SelectMemoryType(0xffffff, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
         vkAllocateMemory(m_Device, &alloc, m_Alloc, &result->memory);
@@ -157,6 +172,108 @@ namespace RHINO::APIVulkan {
                 return propsEXT.samplerDescriptorSize;
             default:
                 return 0;
+        }
+    }
+
+    void VulkanBackend::SelectQueues(VkDeviceQueueCreateInfo queueInfos[3], uint32_t* infosCount) noexcept {
+        uint32_t queuesCount = 0;
+        vkGetPhysicalDeviceQueueFamilyProperties(m_PhysicalDevice, &queuesCount, nullptr);
+        std::vector<VkQueueFamilyProperties> queues;
+        queues.resize(queuesCount);
+        vkGetPhysicalDeviceQueueFamilyProperties(m_PhysicalDevice, &queuesCount, queues.data());
+
+        uint32_t graphicsQueueIndex = ~0;
+        uint32_t computeQueueIndex = ~0;
+        uint32_t copyQueueIndex = ~0;
+
+        for (size_t i = 0; i < queuesCount; ++i) {
+            if (queues[i].queueFlags & (VK_QUEUE_COMPUTE_BIT | VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_TRANSFER_BIT) && queues[i].queueCount >= 3
+                && graphicsQueueIndex == ~0 && computeQueueIndex == ~0 && copyQueueIndex == ~0) {
+                graphicsQueueIndex = i;
+                computeQueueIndex = i;
+                copyQueueIndex = i;
+                break;
+            } else if (queues[i].queueFlags & (VK_QUEUE_COMPUTE_BIT | VK_QUEUE_GRAPHICS_BIT) && queues[i].queueCount >= 2
+                       && graphicsQueueIndex == ~0 && computeQueueIndex == ~0) {
+                graphicsQueueIndex = i;
+                computeQueueIndex = i;
+            } else if (queues[i].queueFlags & (VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT) && queues[i].queueCount >= 2
+                       && computeQueueIndex == ~0 && copyQueueIndex == ~0) {
+                computeQueueIndex = i;
+                copyQueueIndex = i;
+            } else if (queues[i].queueFlags & (VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_TRANSFER_BIT) && queues[i].queueCount >= 2
+                       && graphicsQueueIndex == ~0 && copyQueueIndex == ~0) {
+                graphicsQueueIndex = i;
+                copyQueueIndex = i;
+            } else if (queues[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+                graphicsQueueIndex = i;
+            } else if (queues[i].queueFlags & VK_QUEUE_COMPUTE_BIT) {
+                computeQueueIndex = i;
+            } else if (queues[i].queueFlags & VK_QUEUE_TRANSFER_BIT) {
+                copyQueueIndex = i;
+            }
+        }
+
+        static const float priorities[3] = {0.5, 0.5, 0.5};
+        if (graphicsQueueIndex == computeQueueIndex && computeQueueIndex == copyQueueIndex) {
+            queueInfos[0].queueCount = 3;
+            queueInfos[0].queueFamilyIndex = graphicsQueueIndex;
+            queueInfos[0].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+            queueInfos[0].pQueuePriorities = priorities;
+            *infosCount = 1;
+        } else if (graphicsQueueIndex == computeQueueIndex) {
+            *infosCount = 2;
+
+            queueInfos[0].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+            queueInfos[0].queueCount = 2;
+            queueInfos[0].queueFamilyIndex = graphicsQueueIndex;
+            queueInfos[0].pQueuePriorities = priorities;
+
+            queueInfos[1].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+            queueInfos[1].queueCount = 1;
+            queueInfos[1].queueFamilyIndex = copyQueueIndex;
+            queueInfos[1].pQueuePriorities = priorities;
+        } else if (graphicsQueueIndex == copyQueueIndex) {
+            *infosCount = 2;
+
+            queueInfos[0].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+            queueInfos[0].queueCount = 2;
+            queueInfos[0].queueFamilyIndex = graphicsQueueIndex;
+            queueInfos[0].pQueuePriorities = priorities;
+
+            queueInfos[1].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+            queueInfos[1].queueCount = 1;
+            queueInfos[1].queueFamilyIndex = computeQueueIndex;
+            queueInfos[1].pQueuePriorities = priorities;
+        } else if (computeQueueIndex == copyQueueIndex) {
+            *infosCount = 2;
+
+            queueInfos[0].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+            queueInfos[0].queueCount = 2;
+            queueInfos[0].queueFamilyIndex = computeQueueIndex;
+            queueInfos[0].pQueuePriorities = priorities;
+
+            queueInfos[1].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+            queueInfos[1].queueCount = 1;
+            queueInfos[1].queueFamilyIndex = graphicsQueueIndex;
+            queueInfos[1].pQueuePriorities = priorities;
+        } else {
+            *infosCount = 3;
+
+            queueInfos[0].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+            queueInfos[0].queueCount = 1;
+            queueInfos[0].queueFamilyIndex = graphicsQueueIndex;
+            queueInfos[0].pQueuePriorities = priorities;
+
+            queueInfos[1].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+            queueInfos[1].queueCount = 1;
+            queueInfos[1].queueFamilyIndex = computeQueueIndex;
+            queueInfos[1].pQueuePriorities = priorities;
+
+            queueInfos[2].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+            queueInfos[2].queueCount = 1;
+            queueInfos[2].queueFamilyIndex = computeQueueIndex;
+            queueInfos[2].pQueuePriorities = priorities;
         }
     }
 
