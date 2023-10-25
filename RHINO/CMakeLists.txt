@@ -45,6 +45,8 @@ set(SourceFiles
         source/D3D12/D3D12DescriptorHeap.cpp
         source/D3D12/D3D12CommandList.cpp
         source/D3D12/D3D12CommandList.h
+        source/DebugLayer/DebugLayer.cpp
+        source/DebugLayer/DebugLayer.h
 )
 
 if(APPLE)

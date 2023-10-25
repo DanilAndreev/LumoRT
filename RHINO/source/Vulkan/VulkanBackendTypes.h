@@ -27,8 +27,9 @@ namespace RHINO::APIVulkan {
 
     class VulkanComputePSO : public ComputePSO {
     public:
-        VkPipeline PSO;
-        VkPipelineLayout layout;
+        VkPipeline PSO = VK_NULL_HANDLE;
+        VkShaderModule shaderModule = VK_NULL_HANDLE;
+        VkPipelineLayout layout = VK_NULL_HANDLE;
     };
 }// namespace RHINO::APIVulkan
 

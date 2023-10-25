@@ -82,10 +82,38 @@ namespace RHINO::APIVulkan {
     }
 
     ComputePSO* VulkanBackend::CompileComputePSO(const ComputePSODesc& desc) noexcept {
-        return nullptr;
+        auto* result = new VulkanComputePSO{};
+
+        VkPipelineLayoutCreateInfo layoutInfo{VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO};
+        layoutInfo.pushConstantRangeCount = 0;
+        layoutInfo.setLayoutCount = 0;
+        vkCreatePipelineLayout(m_Device, &layoutInfo, m_Alloc, &result->layout);
+
+        VkShaderModuleCreateInfo shaderModuleInfo{};
+        shaderModuleInfo.codeSize = desc.CS.bytecodeSize;
+        shaderModuleInfo.pCode = reinterpret_cast<const uint32_t*>(desc.CS.bytecode);
+        vkCreateShaderModule(m_Device, &shaderModuleInfo, m_Alloc, &result->shaderModule);
+
+        VkPipelineShaderStageCreateInfo stageInfo{VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO};
+        stageInfo.flags = 0;
+        stageInfo.module = result->shaderModule;
+        stageInfo.stage = VK_SHADER_STAGE_COMPUTE_BIT;
+        stageInfo.pName = desc.CS.entrypoint;
+        stageInfo.pSpecializationInfo = nullptr;
+
+        VkComputePipelineCreateInfo createInfo{VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO};
+        createInfo.stage = stageInfo;
+        createInfo.layout = VK_NULL_HANDLE;
+        vkCreateComputePipelines(m_Device, VK_NULL_HANDLE, 1, &createInfo, m_Alloc, &result->PSO);
+        return result;
     }
 
     void VulkanBackend::ReleaseComputePSO(ComputePSO* pso) noexcept {
+        auto* vulkanComputePSO = static_cast<VulkanComputePSO*>(pso);
+        vkDestroyPipelineLayout(m_Device, vulkanComputePSO->layout, m_Alloc);
+        vkDestroyPipeline(m_Device, vulkanComputePSO->PSO, m_Alloc);
+        vkDestroyShaderModule(m_Device, vulkanComputePSO->shaderModule, m_Alloc);
+        delete vulkanComputePSO;
     }
 
     Buffer* VulkanBackend::CreateBuffer(size_t size, ResourceHeapType heapType, ResourceUsage usage, size_t structuredStride, const char* name) noexcept {
