@@ -5,8 +5,6 @@
 
 namespace RHINO::APIVulkan {
     void VulkanCommandList::Dispatch(const DispatchDesc& desc) noexcept {
-        auto* vulkanComputePSO = static_cast<VulkanComputePSO*>(desc.pso);
-        vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, vulkanComputePSO->PSO);
         vkCmdDispatch(cmd, desc.dimensionsX, desc.dimensionsY, desc.dimensionsZ);
     }
 

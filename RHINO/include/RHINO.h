@@ -38,6 +38,10 @@ namespace RHINO {
 
         virtual CommandList* AllocateCommandList(const char* name = "") noexcept = 0;
         virtual void ReleaseCommandList(CommandList* commandList) noexcept = 0;
+
+    public:
+        // JOB SUBMISSION
+        virtual void SubmitCommandList(CommandList* cmd) noexcept = 0;
     };
 
     RHINOInterface* CreateRHINO(BackendAPI backendApi) noexcept;

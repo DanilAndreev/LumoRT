@@ -76,7 +76,6 @@ namespace RHINO {
     };
 
     struct DispatchDesc {
-        ComputePSO* pso;
         size_t dimensionsX;
         size_t dimensionsY;
         size_t dimensionsZ;

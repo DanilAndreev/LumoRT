@@ -67,6 +67,11 @@ namespace RHINO::APIVulkan {
         deviceInfo.pQueueCreateInfos = queueInfos;
         vkCreateDevice(m_PhysicalDevice, &deviceInfo, m_Alloc, &m_Device);
 
+        vkGetDeviceQueue(m_Device, queueInfos[0].queueFamilyIndex, 0, &m_DefaultQueue);
+        //TODO: fix (get real mapping)
+        vkGetDeviceQueue(m_Device, queueInfos[1].queueFamilyIndex, 0, &m_AsyncComputeQueue);
+        vkGetDeviceQueue(m_Device, queueInfos[2].queueFamilyIndex, 0, &m_CopyQueue);
+
         LoadVulkanAPI(m_Instance, vkGetInstanceProcAddr);
     }
 
@@ -258,6 +263,17 @@ namespace RHINO::APIVulkan {
     void VulkanBackend::ReleaseCommandList(CommandList* commandList) noexcept {
     }
 
+    void VulkanBackend::SubmitCommandList(CommandList* cmd) noexcept {
+        auto* vulkanCMD = static_cast<VulkanCommandList*>(cmd);
+        VkSubmitInfo submitInfo{VK_STRUCTURE_TYPE_SUBMIT_INFO};
+        submitInfo.commandBufferCount = 1;
+        submitInfo.pCommandBuffers = &vulkanCMD->cmd;
+        submitInfo.signalSemaphoreCount = 0;
+        submitInfo.waitSemaphoreCount = 0;
+
+        vkQueueSubmit(m_DefaultQueue, 1, &submitInfo, VK_NULL_HANDLE);
+    }
+
     uint32_t VulkanBackend::SelectMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) noexcept {
         VkPhysicalDeviceMemoryProperties deviceMemoryProperties{};
         vkGetPhysicalDeviceMemoryProperties(m_PhysicalDevice, &deviceMemoryProperties);
@@ -377,7 +393,6 @@ namespace RHINO::APIVulkan {
             queueInfos[2].pQueuePriorities = priorities;
         }
     }
-
 }// namespace RHINO::APIVulkan
 
 #endif// ENABLE_API_VULKAN

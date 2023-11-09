@@ -32,6 +32,9 @@ namespace RHINO::APIVulkan {
         CommandList* AllocateCommandList(const char* name) noexcept final;
         void ReleaseCommandList(CommandList* commandList) noexcept final;
 
+    public:
+        void SubmitCommandList(CommandList* cmd) noexcept override;
+
     private:
         uint32_t SelectMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) noexcept;
         void SelectQueues(VkDeviceQueueCreateInfo queueInfos[3], uint32_t* infosCount) noexcept;
@@ -40,6 +43,11 @@ namespace RHINO::APIVulkan {
         VkInstance m_Instance = VK_NULL_HANDLE;
         VkDevice m_Device = VK_NULL_HANDLE;
         VkPhysicalDevice m_PhysicalDevice = VK_NULL_HANDLE;
+
+        VkQueue m_DefaultQueue = VK_NULL_HANDLE;
+        VkQueue m_AsyncComputeQueue = VK_NULL_HANDLE;
+        VkQueue m_CopyQueue = VK_NULL_HANDLE;
+
         VkAllocationCallbacks* m_Alloc = nullptr;
     };
 }// namespace RHINO::APIVulkan

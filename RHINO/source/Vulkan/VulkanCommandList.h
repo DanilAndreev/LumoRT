@@ -13,7 +13,7 @@ namespace RHINO::APIVulkan {
         void SetRTPSO(RTPSO* pso) noexcept final;
         void SetHeap(DescriptorHeap* heap) noexcept final;
 
-    private:
+    public:
         VkCommandBuffer cmd = VK_NULL_HANDLE;
 
     private:
