@@ -34,7 +34,7 @@ int main() {
     desc.offsetInHeap = 1;
     heap->WriteUAV(desc);
 
-    std::ifstream shaderFile{"res.spirv", std::ios::binary};
+    std::ifstream shaderFile{"res.spirv", std::ios::binary | std::ios::ate};
     assert(shaderFile.is_open());
     auto bytecode = ReadBinary(shaderFile);
     shaderFile.close();
