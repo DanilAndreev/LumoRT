@@ -39,7 +39,7 @@ namespace RHINO::APIVulkan {
     private:
         VkInstance m_Instance = VK_NULL_HANDLE;
         VkDevice m_Device = VK_NULL_HANDLE;
-        VkPhysicalDevice m_PhysicalDevice;
+        VkPhysicalDevice m_PhysicalDevice = VK_NULL_HANDLE;
         VkAllocationCallbacks* m_Alloc = nullptr;
     };
 }// namespace RHINO::APIVulkan

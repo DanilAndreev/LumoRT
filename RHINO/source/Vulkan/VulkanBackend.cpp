@@ -58,6 +58,7 @@ namespace RHINO::APIVulkan {
         deviceInfo.pNext = &deviceFeatures2;
         const char* deviceExtensions[] = {
                 VK_EXT_DESCRIPTOR_BUFFER_EXTENSION_NAME,
+                VK_EXT_MUTABLE_DESCRIPTOR_TYPE_EXTENSION_NAME,
                 VK_EXT_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME,
         };
         deviceInfo.enabledExtensionCount = RHINO_ARR_SIZE(deviceExtensions);
@@ -84,9 +85,41 @@ namespace RHINO::APIVulkan {
     ComputePSO* VulkanBackend::CompileComputePSO(const ComputePSODesc& desc) noexcept {
         auto* result = new VulkanComputePSO{};
 
+        VkDescriptorSetLayoutBindingFlagsCreateInfo setLayoutBindingFlagsCreateInfo{VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO};
+        setLayoutBindingFlagsCreateInfo.bindingCount = 1;
+        VkDescriptorBindingFlags flags = VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT;
+        setLayoutBindingFlagsCreateInfo.pBindingFlags = &flags;
+
+        VkDescriptorSetLayoutBinding bindingSRVUAVCBV{};
+        bindingSRVUAVCBV.binding = 0;
+        bindingSRVUAVCBV.descriptorCount = desc.visibleCBVSRVUAVDescriptorCount;
+        bindingSRVUAVCBV.descriptorType = VK_DESCRIPTOR_TYPE_MUTABLE_EXT;
+
+        VkDescriptorSetLayoutCreateInfo setLayoutCreateInfo{VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO};
+        setLayoutCreateInfo.pNext = &setLayoutBindingFlagsCreateInfo;
+        setLayoutCreateInfo.flags = VK_DESCRIPTOR_SET_LAYOUT_CREATE_DESCRIPTOR_BUFFER_BIT_EXT;
+        setLayoutCreateInfo.bindingCount = 1;
+        setLayoutCreateInfo.pBindings = &bindingSRVUAVCBV;
+
+        VkDescriptorSetLayout setLayoutCBVSRVUAV = VK_NULL_HANDLE;
+        vkCreateDescriptorSetLayout(m_Device, &setLayoutCreateInfo, m_Alloc, &setLayoutCBVSRVUAV);
+
+        VkDescriptorSetLayoutBinding bindingSampler{};
+        bindingSRVUAVCBV.binding = 0;
+        bindingSRVUAVCBV.descriptorCount = desc.visibleCBVSRVUAVDescriptorCount;
+        bindingSRVUAVCBV.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;
+
+        setLayoutCreateInfo.flags = 0;
+        setLayoutCreateInfo.pBindings = &bindingSampler;
+        VkDescriptorSetLayout setLayoutSampler = VK_NULL_HANDLE;
+        vkCreateDescriptorSetLayout(m_Device, &setLayoutCreateInfo, m_Alloc, &setLayoutSampler);
+
+        VkDescriptorSetLayout setLayouts[] = {setLayoutCBVSRVUAV, setLayoutSampler};
+
         VkPipelineLayoutCreateInfo layoutInfo{VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO};
         layoutInfo.pushConstantRangeCount = 0;
-        layoutInfo.setLayoutCount = 0;
+        layoutInfo.setLayoutCount = RHINO_ARR_SIZE(setLayouts);
+        layoutInfo.pSetLayouts = setLayouts;
         vkCreatePipelineLayout(m_Device, &layoutInfo, m_Alloc, &result->layout);
 
         VkShaderModuleCreateInfo shaderModuleInfo{};
@@ -102,8 +135,9 @@ namespace RHINO::APIVulkan {
         stageInfo.pSpecializationInfo = nullptr;
 
         VkComputePipelineCreateInfo createInfo{VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO};
+        createInfo.flags = VK_PIPELINE_CREATE_DESCRIPTOR_BUFFER_BIT_EXT;
         createInfo.stage = stageInfo;
-        createInfo.layout = VK_NULL_HANDLE;
+        createInfo.layout = result->layout;
         vkCreateComputePipelines(m_Device, VK_NULL_HANDLE, 1, &createInfo, m_Alloc, &result->PSO);
         return result;
     }

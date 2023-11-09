@@ -58,18 +58,6 @@ namespace RHINO {
         Texture3D
     };
 
-    struct DescriptorBindingDesc {
-        size_t slot;
-        ResourceType type;
-    };
-
-    struct DescriptorSpaceDesc {
-        size_t space;
-        DescriptorSpaceType spaceType;
-        size_t bindingsCount;
-        const DescriptorBindingDesc* bindings;
-    };
-
     struct ShaderModule {
         const size_t bytecodeSize;
         const uint8_t* bytecode;
@@ -77,14 +65,12 @@ namespace RHINO {
     };
 
     struct RTPSODesc {
-        size_t spacesCount;
-        const DescriptorSpaceDesc* spaces;
         const char* debugName;
     };
 
     struct ComputePSODesc {
-        size_t spacesCount;
-        const DescriptorSpaceDesc* spaces;
+        size_t visibleCBVSRVUAVDescriptorCount = 0;
+        size_t visibleSamplerDescriptorCount = 0;
         ShaderModule CS;
         const char* debugName;
     };
@@ -100,6 +86,8 @@ namespace RHINO {
     public:
         virtual void Dispatch(const DispatchDesc& desc) noexcept = 0;
         virtual void Draw() noexcept = 0;
+        virtual void SetComputePSO(ComputePSO* pso) noexcept = 0;
+        virtual void SetRTPSO(RTPSO* pso) noexcept = 0;
         virtual void SetHeap(DescriptorHeap* heap) noexcept = 0;
     };
 
