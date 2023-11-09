@@ -59,7 +59,7 @@ namespace RHINO {
     };
 
     struct ShaderModule {
-        const size_t bytecodeSize;
+        size_t bytecodeSize;
         const uint8_t* bytecode;
         const char* entrypoint;
     };

@@ -1,6 +1,20 @@
 #include "RHINO.h"
 
+#include <cassert>
+#include <fstream>
 #include <iostream>
+#include <vector>
+
+std::vector<uint8_t> ReadBinary(std::istream& stream) noexcept {
+    std::streamsize size = stream.tellg();
+    stream.seekg(0, std::ios::beg);
+    std::vector<uint8_t> buffer(size);
+    if (stream.read(reinterpret_cast<char*>(buffer.data()), size))
+    {
+        /* worked! */
+    }
+    return buffer;
+}
 
 int main() {
     using namespace RHINO;
@@ -20,10 +34,16 @@ int main() {
     desc.offsetInHeap = 1;
     heap->WriteUAV(desc);
 
+    std::ifstream shaderFile{"res.spirv", std::ios::binary};
+    assert(shaderFile.is_open());
+    auto bytecode = ReadBinary(shaderFile);
+    shaderFile.close();
+    assert(bytecode.size() % 4 == 0);
+
     ComputePSODesc psoDesc{};
     psoDesc.CS.entrypoint = "main";
-    psoDesc.CS.bytecodeSize = ;
-    psoDesc.CS.bytecode = ;
+    psoDesc.CS.bytecodeSize = bytecode.size();
+    psoDesc.CS.bytecode = bytecode.data();
     psoDesc.visibleCBVSRVUAVDescriptorCount = 2;
     psoDesc.visibleSamplerDescriptorCount = 0;
     psoDesc.debugName = "TestCPSO";

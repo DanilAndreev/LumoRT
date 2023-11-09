@@ -1,5 +1,9 @@
 #include "DebugLayer.h"
 
+#ifdef WIN32
+#include <windows.h>
+#endif
+
 namespace RHINO::DebugLayer {
     using namespace std::string_literals;
     DebugLayer::DebugLayer(RHINOInterface* wrapped) noexcept : m_Wrapped(wrapped) {}

@@ -1,7 +1,10 @@
 #ifdef ENABLE_API_D3D12
 #include "D3D12/D3D12Backend.h"
-#include "Vulkan//VulkanBackend.h"
 #endif // ENABLE_API_D3D12
+
+#ifdef ENABLE_API_VULKAN
+#include "Vulkan/VulkanBackend.h"
+#endif // ENABLE_API_VULKAN
 
 #ifdef ENABLE_API_METAL
 #include "Metal/AllocateMetalBackend.h"
