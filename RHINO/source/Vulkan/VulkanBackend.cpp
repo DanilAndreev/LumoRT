@@ -95,13 +95,23 @@ namespace RHINO::APIVulkan {
         VkDescriptorBindingFlags flags = VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT;
         setLayoutBindingFlagsCreateInfo.pBindingFlags = &flags;
 
+        VkDescriptorType descriptorTypes[] = {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+                                              VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE};
+        VkMutableDescriptorTypeListEXT mutableDescriptorTypeList{};
+        mutableDescriptorTypeList.descriptorTypeCount = RHINO_ARR_SIZE(descriptorTypes);
+        mutableDescriptorTypeList.pDescriptorTypes = descriptorTypes;
+        VkMutableDescriptorTypeCreateInfoEXT mutableDescriptorTypeCreateInfoExt{VK_STRUCTURE_TYPE_MUTABLE_DESCRIPTOR_TYPE_CREATE_INFO_EXT};
+        mutableDescriptorTypeCreateInfoExt.pNext = &setLayoutBindingFlagsCreateInfo;
+        mutableDescriptorTypeCreateInfoExt.mutableDescriptorTypeListCount = 1;
+        mutableDescriptorTypeCreateInfoExt.pMutableDescriptorTypeLists = &mutableDescriptorTypeList;
+
         VkDescriptorSetLayoutBinding bindingSRVUAVCBV{};
         bindingSRVUAVCBV.binding = 0;
         bindingSRVUAVCBV.descriptorCount = desc.visibleCBVSRVUAVDescriptorCount;
         bindingSRVUAVCBV.descriptorType = VK_DESCRIPTOR_TYPE_MUTABLE_EXT;
 
         VkDescriptorSetLayoutCreateInfo setLayoutCreateInfo{VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO};
-        setLayoutCreateInfo.pNext = &setLayoutBindingFlagsCreateInfo;
+        setLayoutCreateInfo.pNext = &mutableDescriptorTypeCreateInfoExt;
         setLayoutCreateInfo.flags = VK_DESCRIPTOR_SET_LAYOUT_CREATE_DESCRIPTOR_BUFFER_BIT_EXT;
         setLayoutCreateInfo.bindingCount = 1;
         setLayoutCreateInfo.pBindings = &bindingSRVUAVCBV;
