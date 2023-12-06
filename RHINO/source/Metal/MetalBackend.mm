@@ -49,6 +49,7 @@ namespace RHINO::APIMetal {
 
         //TODO: add to func param
         size_t descriptorsCount = 100;
+        result->resources.resize(descriptorsCount);
 
         MTLArgumentDescriptor* arg = [MTLArgumentDescriptor argumentDescriptor];
         arg.index = 0;

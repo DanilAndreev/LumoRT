@@ -19,11 +19,16 @@ namespace RHINO::APIMetal {
     public:
         id<MTLBuffer> argBuf = nil;
         id<MTLArgumentEncoder> encoder = nil;
+        std::vector<id<MTLResource>> resources{};
     };
 
     class MetalCommandList : public CommandList {
     public:
         id<MTLCommandBuffer> cmd = nil;
+    };
+
+    class MetalRTPSO : public RTPSO {
+    public:
     };
 }// namespace RHINO::APIMetal
 
