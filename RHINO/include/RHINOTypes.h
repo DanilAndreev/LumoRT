@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <cstdlib>
 
 namespace RHINO {
@@ -42,5 +43,79 @@ namespace RHINO {
         DSV,
         Sampler,
         Count,
+    };
+
+    enum class DescriptorSpaceType {
+        SRV,
+        UAV,
+        CBV,
+        Sampler,
+    };
+
+    enum class ResourceType {
+        Buffer,
+        Texture2D,
+        Texture3D
+    };
+
+    struct ShaderModule {
+        size_t bytecodeSize;
+        const uint8_t* bytecode;
+        const char* entrypoint;
+    };
+
+    struct RTPSODesc {
+        const char* debugName;
+    };
+
+    struct ComputePSODesc {
+        size_t visibleCBVSRVUAVDescriptorCount = 0;
+        size_t visibleSamplerDescriptorCount = 0;
+        ShaderModule CS;
+        const char* debugName;
+    };
+
+    struct DispatchDesc {
+        size_t dimensionsX;
+        size_t dimensionsY;
+        size_t dimensionsZ;
+    };
+
+    class CommandList {
+    public:
+        virtual void Dispatch(const DispatchDesc& desc) noexcept = 0;
+        virtual void Draw() noexcept = 0;
+        virtual void SetComputePSO(ComputePSO* pso) noexcept = 0;
+        virtual void SetRTPSO(RTPSO* pso) noexcept = 0;
+        virtual void SetHeap(DescriptorHeap* heap) noexcept = 0;
+    };
+
+    struct WriteBufferSRVDesc {
+        Buffer* buffer = nullptr;
+        size_t bufferOffset = 0;
+        size_t offsetInHeap = 0;
+    };
+
+    struct WriteTexture2DSRVDesc {
+        Texture2D* texture = nullptr;
+        size_t offsetInHeap = 0;
+    };
+
+    struct WriteTexture3DSRVDesc {
+        Texture2D* texture = nullptr;
+        size_t offsetInHeap = 0;
+    };
+
+    class DescriptorHeap {
+    public:
+        virtual void WriteSRV(const WriteBufferSRVDesc& desc) noexcept = 0;
+        virtual void WriteUAV(const WriteBufferSRVDesc& desc) noexcept = 0;
+        virtual void WriteCBV(const WriteBufferSRVDesc& desc) noexcept = 0;
+
+        virtual void WriteSRV(const WriteTexture2DSRVDesc& desc) noexcept = 0;
+        virtual void WriteUAV(const WriteTexture2DSRVDesc& desc) noexcept = 0;
+
+        virtual void WriteSRV(const WriteTexture3DSRVDesc& desc) noexcept = 0;
+        virtual void WriteUAV(const WriteTexture3DSRVDesc& desc) noexcept = 0;
     };
 }
