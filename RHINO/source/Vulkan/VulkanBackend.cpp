@@ -90,6 +90,35 @@ namespace RHINO::APIVulkan {
     ComputePSO* VulkanBackend::CompileComputePSO(const ComputePSODesc& desc) noexcept {
         auto* result = new VulkanComputePSO{};
 
+        for (size_t i = 0; i < desc.rangeDescCount; ++i) {
+            const DescriptorRangeDesc& rangeDesc = desc.rangeDescs[i];
+
+            VkDescriptorSetLayoutBinding bindingSRVUAVCBV{};
+            bindingSRVUAVCBV.binding = rangeDesc.registerSlot;
+            bindingSRVUAVCBV.descriptorCount = rangeDesc.descriptorsCount;
+            bindingSRVUAVCBV.descriptorType = VK_DESCRIPTOR_TYPE_;
+
+            VkDescriptorSetLayoutCreateInfo setLayoutCreateInfo{VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO};
+            setLayoutCreateInfo.pNext = &mutableDescriptorTypeCreateInfoExt;
+            setLayoutCreateInfo.flags = VK_DESCRIPTOR_SET_LAYOUT_CREATE_DESCRIPTOR_BUFFER_BIT_EXT;
+            setLayoutCreateInfo.bindingCount = 1;
+            setLayoutCreateInfo.pBindings = &bindingSRVUAVCBV;
+
+            VkDescriptorSetLayout setLayoutCBVSRVUAV = VK_NULL_HANDLE;
+            vkCreateDescriptorSetLayout(m_Device, &setLayoutCreateInfo, m_Alloc, &setLayoutCBVSRVUAV);
+
+        }
+
+
+
+
+
+
+
+
+
+
+
         VkDescriptorSetLayoutBindingFlagsCreateInfo setLayoutBindingFlagsCreateInfo{VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO};
         setLayoutBindingFlagsCreateInfo.bindingCount = 1;
         VkDescriptorBindingFlags flags = VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT;
@@ -403,6 +432,23 @@ namespace RHINO::APIVulkan {
             queueInfos[2].pQueuePriorities = priorities;
         }
     }
+
+    VkDescriptorType VulkanBackend::ToDescriptorType(DescriptorRangeType type) noexcept {
+        switch (type) {
+            case DescriptorRangeType::SRV:
+                return VK_DESCRIPTOR_TYPE
+            case DescriptorRangeType::UAV:
+                break;
+            case DescriptorRangeType::CBV:
+                break;
+            case DescriptorRangeType::Sampler:
+                break;
+            default:
+                assert(0);
+                return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        }
+    }
+
 }// namespace RHINO::APIVulkan
 
 #endif// ENABLE_API_VULKAN

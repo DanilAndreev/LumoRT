@@ -40,6 +40,8 @@ namespace RHINO::APIVulkan {
         void SelectQueues(VkDeviceQueueCreateInfo queueInfos[3], uint32_t* infosCount) noexcept;
         size_t CalculateDescriptorHandleIncrementSize(DescriptorHeapType heapType,  const VkPhysicalDeviceDescriptorBufferPropertiesEXT& descriptorProps) noexcept;
     private:
+        static VkDescriptorType ToDescriptorType(DescriptorRangeType type) noexcept;
+    private:
         VkInstance m_Instance = VK_NULL_HANDLE;
         VkDevice m_Device = VK_NULL_HANDLE;
         VkPhysicalDevice m_PhysicalDevice = VK_NULL_HANDLE;
