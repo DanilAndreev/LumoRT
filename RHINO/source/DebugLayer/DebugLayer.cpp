@@ -79,6 +79,9 @@ namespace RHINO::DebugLayer {
     void DebugLayer::ReleaseCommandList(CommandList* commandList) noexcept {
     }
 
+    void DebugLayer::SubmitCommandList(CommandList* cmd) noexcept {
+    }
+
     void DebugLayer::DB(const std::string& text) const noexcept {
 #ifdef WIN32
         OutputDebugStringA(text.c_str());

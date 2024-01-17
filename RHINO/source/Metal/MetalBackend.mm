@@ -4,6 +4,8 @@
 
 #import "MetalBackendTypes.h"
 #include "MetalBackend.h"
+#include "MetalDescriptorHeap.h"
+#include "MetalCommandList.h"
 
 
 namespace RHINO::APIMetal {
@@ -15,12 +17,12 @@ namespace RHINO::APIMetal {
     void MetalBackend::Release() noexcept {
     }
 
-    RTPSO* APIMetal::MetalBackend::CompileRTPSO() noexcept {
+    RTPSO* APIMetal::MetalBackend::CompileRTPSO(const RTPSODesc& desc) noexcept {
         return nullptr;
     }
     void MetalBackend::ReleaseRTPSO(RTPSO* pso) noexcept {
     }
-    ComputePSO* MetalBackend::CompileComputePSO() noexcept {
+    ComputePSO* MetalBackend::CompileComputePSO(const ComputePSODesc& desc) noexcept {
         return nullptr;
     }
     void MetalBackend::ReleaseComputePSO(ComputePSO* pso) noexcept {
@@ -44,11 +46,9 @@ namespace RHINO::APIMetal {
     void MetalBackend::ReleaseTexture2D(Texture2D* texture) noexcept {
         delete texture;
     }
-    DescriptorHeap* MetalBackend::CreateDescriptorHeap(DescriptorHeapType type, const char* name) noexcept {
+    DescriptorHeap* MetalBackend::CreateDescriptorHeap(DescriptorHeapType type, size_t descriptorsCount, const char* name) noexcept {
         auto* result = new MetalDescriptorHeap{};
 
-        //TODO: add to func param
-        size_t descriptorsCount = 100;
         result->resources.resize(descriptorsCount);
 
         MTLArgumentDescriptor* arg = [MTLArgumentDescriptor argumentDescriptor];
@@ -88,6 +88,10 @@ namespace RHINO::APIMetal {
     void MetalBackend::ReleaseCommandList(CommandList* commandList) noexcept {
         delete commandList;
     }
+
+    void MetalBackend::SubmitCommandList(CommandList* cmd) noexcept {
+    }
+
 }// namespace RHINO::APIMetal
 
 #endif// ENABLE_API_METAL

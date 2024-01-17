@@ -28,9 +28,13 @@ set(HeaderFiles
 set(ObjCHeaderFiles
         source/Metal/MetalBackend.h
         source/Metal/AllocateMetalBackend.h
-        source/Metal/MetalBackendTypes.h)
+        source/Metal/MetalBackendTypes.h
+        source/Metal/MetalDescriptorHeap.h
+        source/Metal/MetalCommandList.h)
 set(ObjCSourceFiles
-        source/Metal/MetalBackend.mm)
+        source/Metal/MetalBackend.mm
+        source/Metal/MetalDescriptorHeap.mm
+        source/Metal/MetalCommandList.mm)
 
 set(SourceFiles
         source/main.cpp
@@ -50,11 +54,13 @@ set(SourceFiles
 )
 
 if(APPLE)
+    message("RHINO AVAILABLE APIs: Metal.")
     add_library(RHINO ${SourceFiles} ${HeaderFiles} ${ObjCHeaderFiles} ${ObjCSourceFiles} ${InterfaceHeaderFiles})
     set_source_files_properties(${ObjCHeaderFiles} PROPERTIES HEADER_FILE_ONLY TRUE)
     target_compile_options(RHINO PUBLIC -fmodules -std=c++20)
     target_compile_definitions(RHINO PRIVATE ENABLE_API_METAL=1)
 else()
+    message("RHINO AVAILABLE APIs: Vulkan, D3D12.")
     add_library(RHINO ${SourceFiles} ${HeaderFiles} ${InterfaceHeaderFiles})
     target_compile_definitions(RHINO PRIVATE ENABLE_API_VULKAN=1 ) # ENABLE_API_D3D12=1
     target_link_libraries(RHINO PRIVATE d3d12.lib dxgi.lib)

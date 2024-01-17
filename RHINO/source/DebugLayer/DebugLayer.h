@@ -22,11 +22,13 @@ namespace RHINO::DebugLayer {
         void ReleaseDescriptorHeap(DescriptorHeap* heap) noexcept final;
         CommandList* AllocateCommandList(const char* name) noexcept final;
         void ReleaseCommandList(CommandList* commandList) noexcept final;
+        void SubmitCommandList(CommandList* cmd) noexcept final;
     private:
         void DB(const std::string& text) const noexcept;
 
         // Enum to String
         static const char* EtoS(ResourceUsage usage) noexcept;
+
     private:
         RHINOInterface* m_Wrapped = nullptr;
     };

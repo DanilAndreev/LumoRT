@@ -3,12 +3,14 @@
 #ifdef ENABLE_API_METAL
 
 namespace RHINO::APIMetal {
+    class MetalTexture2D;
     class MetalBackend : public RHINOInterface {
     private:
         id<MTLDevice> m_Device = nil;
         id<MTLCommandQueue> m_DefaultQueue;
         id<MTLCommandQueue> m_AsyncComputeQueue;
         id<MTLCommandQueue> m_CopyQueue;
+
     public:
         MetalBackend() noexcept {}
 
@@ -17,9 +19,9 @@ namespace RHINO::APIMetal {
         void Release() noexcept override;
 
     public:
-        RTPSO* CompileRTPSO() noexcept final;
+        RTPSO* CompileRTPSO(const RTPSODesc& desc) noexcept final;
         void ReleaseRTPSO(RTPSO* pso) noexcept final;
-        ComputePSO* CompileComputePSO() noexcept final;
+        ComputePSO* CompileComputePSO(const ComputePSODesc& desc) noexcept final;
         void ReleaseComputePSO(ComputePSO* pso) noexcept final;
 
     public:
@@ -27,15 +29,14 @@ namespace RHINO::APIMetal {
         void ReleaseBuffer(Buffer* buffer) noexcept final;
         MetalTexture2D* CreateTexture2D() noexcept final;
         void ReleaseTexture2D(Texture2D* texture) noexcept final;
-        DescriptorHeap* CreateDescriptorHeap(DescriptorHeapType type, const char* name) noexcept final;
+        DescriptorHeap* CreateDescriptorHeap(DescriptorHeapType type, size_t descriptorsCount, const char* name) noexcept final;
         void ReleaseDescriptorHeap(DescriptorHeap* heap) noexcept final;
         CommandList* AllocateCommandList(const char* name) noexcept override;
         void ReleaseCommandList(CommandList* commandList) noexcept override;
 
     public:
-        void DispatchCompute() noexcept final;
-        void DispatchComputeIndirect() noexcept final;
-        void TraceRays() noexcept final;
+        // JOB SUBMISSION
+        virtual void SubmitCommandList(CommandList* cmd) noexcept final;
     };
 
     RHINOInterface* AllocateMetalBackend() noexcept {

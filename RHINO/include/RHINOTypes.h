@@ -94,6 +94,8 @@ namespace RHINO {
 
     class CommandList {
     public:
+        virtual ~CommandList() noexcept = default;
+    public:
         virtual void Dispatch(const DispatchDesc& desc) noexcept = 0;
         virtual void Draw() noexcept = 0;
         virtual void SetComputePSO(ComputePSO* pso) noexcept = 0;
@@ -118,6 +120,8 @@ namespace RHINO {
     };
 
     class DescriptorHeap {
+    public:
+        virtual ~DescriptorHeap() noexcept = default;
     public:
         virtual void WriteSRV(const WriteBufferSRVDesc& desc) noexcept = 0;
         virtual void WriteUAV(const WriteBufferSRVDesc& desc) noexcept = 0;
