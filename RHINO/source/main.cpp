@@ -27,7 +27,6 @@ namespace RHINO {
 #endif // ENABLE_API_VULKAN
 #ifdef ENABLE_API_METAL
             case BackendAPI::Metal:
-                assert(0 && "Metal is not supported. UNDER CONSTRUCTION");
                 return APIMetal::AllocateMetalBackend();
 #endif // ENABLE_API_METAL
             default:

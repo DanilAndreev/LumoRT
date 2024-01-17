@@ -18,7 +18,7 @@ std::vector<uint8_t> ReadBinary(std::istream& stream) noexcept {
 
 int main() {
     using namespace RHINO;
-    RHINOInterface* rhi = CreateRHINO(BackendAPI::Vulkan);
+    RHINOInterface* rhi = CreateRHINO(BackendAPI::Metal);
     rhi->Initialize();
     DescriptorHeap* heap = rhi->CreateDescriptorHeap(DescriptorHeapType::SRV_CBV_UAV, 10, "Heap");
 
