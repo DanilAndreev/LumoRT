@@ -116,7 +116,7 @@ namespace RHINO::APIVulkan {
             std::vector<VkDescriptorSetLayoutBinding> bindings{};
             bindings.resize(topBindingPerSpace[space]);
 
-            bool isSamplerSpace = spaceDesc.rangeDescs[0].rangeType == DescriptorType::Sampler;
+            bool isSamplerSpace = spaceDesc.rangeDescs[0].rangeType == DescriptorRangeType::Sampler;
             if (isSamplerSpace) {
                 for (uint32_t i = 0; i < bindings.size(); ++i) {
                     bindings[i] = VkDescriptorSetLayoutBinding{i, VK_DESCRIPTOR_TYPE_SAMPLER, 1, VK_SHADER_STAGE_COMPUTE_BIT, nullptr};
@@ -127,29 +127,44 @@ namespace RHINO::APIVulkan {
                 }
             }
 
+            std::map<size_t, DescriptorRangeType> rangeTypeByBinding{};
             for (size_t range = 0; range < spaceDesc.rangeDescCount; ++range) {
                 const DescriptorRangeDesc& rangeDesc = spaceDesc.rangeDescs[range];
-                VkDescriptorType descriptorType = ToDescriptorType(rangeDesc.rangeType);
                 for (size_t i = 0; i < rangeDesc.descriptorsCount; ++i) {
-                    VkDescriptorSetLayoutBinding binding{};
-                    binding.binding = rangeDesc.baseRegisterSlot + i;
-                    binding.descriptorCount = 1;
-                    binding.descriptorType = descriptorType;
-                    binding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
-                    bindings[binding.binding] = binding;
+                    rangeTypeByBinding[rangeDesc.baseRegisterSlot + i] = rangeDesc.rangeType;
                 }
             }
 
-            static const VkDescriptorType mutableDescriptorTypes[6] = {
+            static const VkDescriptorType ALLTypes[6] = {
                 VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
                 VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER,
                 VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
             };
+            static const VkDescriptorType CBVTypes[1] = {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER};
+            static const VkDescriptorType SRVTypes[3] = {VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER};
+            static const VkDescriptorType UAVTypes[3] = {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER};
+
             std::vector<VkMutableDescriptorTypeListEXT> mutableDescriptorTypeLists{};
             mutableDescriptorTypeLists.resize( bindings.size());
             for (size_t i = 0; i < bindings.size(); ++i) {
-                mutableDescriptorTypeLists[i].descriptorTypeCount = bindings[i].descriptorType == VK_DESCRIPTOR_TYPE_MUTABLE_EXT ? RHINO_ARR_SIZE(mutableDescriptorTypes) : 0;
-                mutableDescriptorTypeLists[i].pDescriptorTypes = mutableDescriptorTypes;
+                if (rangeTypeByBinding.contains(i)) {
+                    switch (rangeTypeByBinding[i]) {
+                        case DescriptorRangeType::CBV:
+                            mutableDescriptorTypeLists[i] = VkMutableDescriptorTypeListEXT{RHINO_ARR_SIZE(CBVTypes), CBVTypes};
+                            break;
+                        case DescriptorRangeType::SRV:
+                            mutableDescriptorTypeLists[i] = VkMutableDescriptorTypeListEXT{RHINO_ARR_SIZE(SRVTypes), SRVTypes};
+                            break;
+                        case DescriptorRangeType::UAV:
+                            mutableDescriptorTypeLists[i] = VkMutableDescriptorTypeListEXT{RHINO_ARR_SIZE(UAVTypes), UAVTypes};
+                            break;
+                        case DescriptorRangeType::Sampler:
+                            mutableDescriptorTypeLists[i] = VkMutableDescriptorTypeListEXT{0, nullptr};
+                            break;
+                    }
+                } else {
+                    mutableDescriptorTypeLists[i] = VkMutableDescriptorTypeListEXT{RHINO_ARR_SIZE(ALLTypes), ALLTypes};
+                }
             }
 
             VkMutableDescriptorTypeCreateInfoEXT mutableDescriptorTypeCreateInfoExt{VK_STRUCTURE_TYPE_MUTABLE_DESCRIPTOR_TYPE_CREATE_INFO_EXT};

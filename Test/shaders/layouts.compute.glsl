@@ -9,10 +9,10 @@ layout(std430, set = 0, binding = 1) readonly buffer BindlessBuf1 {
 } bindlessBuf1;
 
 
-//layout(set = 0, binding = 0) uniform sampler2D texSRVs[];
-//uniform layout(set = 0, binding = 0, rgba8) writeonly image2D texUAVs[];
+layout(set = 0, binding = 3) uniform sampler2D texSRVs;
+uniform layout(set = 0, binding = 4, rgba8) writeonly image2D texUAVs;
 
-layout(std430, set = 0, binding = 3) buffer DestUAV {
+layout(std430, set = 0, binding = 6) buffer DestUAV {
     int total;
 } destUAV;
 
@@ -20,7 +20,7 @@ void main(void) {
     uvec3 DTid = gl_GlobalInvocationID;
     destUAV.total += bindlessBuf.a;
     ivec2 pixelCoords = ivec2(0, 0);
-//    vec2 uv = vec2(0, 0);
-//    vec4 value = texture(texSRVs[DTid.x], uv);
-//    imageStore(texUAVs[DTid.x], pixelCoords, value);
+    vec2 uv = vec2(0, 0);
+    vec4 value = texture(texSRVs, uv);
+    imageStore(texUAVs, pixelCoords, value);
 }

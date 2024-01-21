@@ -31,9 +31,9 @@ namespace RHINO::DebugLayer {
             }
             usedSpaces.insert(desc.spacesDescs[space].space);
             if (desc.spacesDescs[space].rangeDescCount) {
-                bool isSampler = desc.spacesDescs[space].rangeDescs[0].rangeType == DescriptorType::Sampler;
+                bool isSampler = desc.spacesDescs[space].rangeDescs[0].rangeType == DescriptorRangeType::Sampler;
                 for (size_t range = 0; range < desc.spacesDescs[space].rangeDescCount; ++range) {
-                    if (!(desc.spacesDescs[space].rangeDescs[0].rangeType == DescriptorType::Sampler &&  isSampler)) {
+                    if (!(desc.spacesDescs[space].rangeDescs[0].rangeType == DescriptorRangeType::Sampler &&  isSampler)) {
                         DB("Invalid descriptor range type. You can either SRV/UAV/CBV or Sampler per descriptor space. Space ["s + std::to_string(space) + "] range ["s + std::to_string(range) + "]");
                     }
                 }

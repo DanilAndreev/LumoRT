@@ -57,6 +57,13 @@ namespace RHINO {
         Count,
     };
 
+    enum class DescriptorRangeType {
+        CBV,
+        SRV,
+        UAV,
+        Sampler
+    };
+
     enum class ResourceType {
         Buffer,
         Texture2D,
@@ -65,7 +72,7 @@ namespace RHINO {
     };
 
     struct DescriptorRangeDesc {
-        DescriptorType rangeType = DescriptorType::BufferCBV;
+        DescriptorRangeType rangeType = DescriptorRangeType::CBV;
         size_t descriptorsCount = 0;
         size_t baseRegisterSlot = 0;
     };

@@ -42,9 +42,10 @@ int main() {
     assert(bytecode.size() % 4 == 0);
 
     const DescriptorRangeDesc space0rd[] = {
-        DescriptorRangeDesc{DescriptorType::BufferSRV, 1, 0},
-        DescriptorRangeDesc{DescriptorType::BufferSRV, 1, 1},
-        DescriptorRangeDesc{DescriptorType::BufferUAV, 1, 3},
+        DescriptorRangeDesc{DescriptorRangeType::SRV, 2, 0},
+        DescriptorRangeDesc{DescriptorRangeType::SRV, 1, 3},
+        DescriptorRangeDesc{DescriptorRangeType::UAV, 1, 4},
+        DescriptorRangeDesc{DescriptorRangeType::UAV, 1, 6},
     };
 
     const DescriptorSpaceDesc spaces[] = {
