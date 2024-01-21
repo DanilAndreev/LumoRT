@@ -45,25 +45,36 @@ namespace RHINO {
         Count,
     };
 
-    enum class DescriptorRangeType {
-        SRV,
-        UAV,
-        CBV,
+    enum class DescriptorType {
+        BufferSRV,
+        BufferUAV,
+        BufferCBV,
+        Texture2DSRV,
+        Texture2DUAV,
+        Texture3DSRV,
+        Texture3DUAV,
         Sampler,
+        Count,
     };
 
     enum class ResourceType {
         Buffer,
         Texture2D,
-        Texture3D
+        Texture3D,
+        Count,
     };
 
     struct DescriptorRangeDesc {
-        DescriptorRangeType rangeType = DescriptorRangeType::CBV;
+        DescriptorType rangeType = DescriptorType::BufferCBV;
         size_t descriptorsCount = 0;
-        size_t registerSlot = 0;
+        size_t baseRegisterSlot = 0;
+    };
+
+    struct DescriptorSpaceDesc {
         size_t space = 0;
         size_t offsetInDescriptorsFromTableStart = 0;
+        size_t rangeDescCount = 0;
+        const DescriptorRangeDesc* rangeDescs = nullptr;
     };
 
     struct ShaderModule {
@@ -77,11 +88,8 @@ namespace RHINO {
     };
 
     struct ComputePSODesc {
-        size_t rangeDescCount = 0;
-        const DescriptorRangeDesc* rangeDescs = nullptr;
-
-        size_t visibleCBVSRVUAVDescriptorCount = 0;
-        size_t visibleSamplerDescriptorCount = 0;
+        size_t spacesCount = 0;
+        const DescriptorSpaceDesc* spacesDescs = nullptr;
         ShaderModule CS = {};
         const char* debugName = "UnnamedComputePSO";
     };

@@ -1,4 +1,5 @@
 #include "RHINO.h"
+#include "Utils/Common.h"
 
 #include <cassert>
 #include <fstream>
@@ -18,7 +19,7 @@ std::vector<uint8_t> ReadBinary(std::istream& stream) noexcept {
 
 int main() {
     using namespace RHINO;
-    RHINOInterface* rhi = CreateRHINO(BackendAPI::Metal);
+    RHINOInterface* rhi = CreateRHINO(BackendAPI::Vulkan);
     rhi->Initialize();
     DescriptorHeap* heap = rhi->CreateDescriptorHeap(DescriptorHeapType::SRV_CBV_UAV, 10, "Heap");
 
@@ -34,19 +35,30 @@ int main() {
     desc.offsetInHeap = 1;
     heap->WriteUAV(desc);
 
-    std::ifstream shaderFile{"res.spirv", std::ios::binary | std::ios::ate};
+    std::ifstream shaderFile{"layouts.compute.spirv", std::ios::binary | std::ios::ate};
     assert(shaderFile.is_open());
     auto bytecode = ReadBinary(shaderFile);
     shaderFile.close();
     assert(bytecode.size() % 4 == 0);
 
+    const DescriptorRangeDesc space0rd[] = {
+        DescriptorRangeDesc{DescriptorType::BufferSRV, 1, 0},
+        DescriptorRangeDesc{DescriptorType::BufferSRV, 1, 1},
+        DescriptorRangeDesc{DescriptorType::BufferUAV, 1, 3},
+    };
+
+    const DescriptorSpaceDesc spaces[] = {
+        DescriptorSpaceDesc{0, 0, RHINO_ARR_SIZE(space0rd), space0rd},
+    };
+
+
     ComputePSODesc psoDesc{};
     psoDesc.CS.entrypoint = "main";
     psoDesc.CS.bytecodeSize = bytecode.size();
     psoDesc.CS.bytecode = bytecode.data();
-    psoDesc.visibleCBVSRVUAVDescriptorCount = 2;
-    psoDesc.visibleSamplerDescriptorCount = 0;
     psoDesc.debugName = "TestCPSO";
+    psoDesc.spacesCount = RHINO_ARR_SIZE(spaces);
+    psoDesc.spacesDescs = spaces;
     ComputePSO* pso = rhi->CompileComputePSO(psoDesc);
 
     CommandList* cmd = rhi->AllocateCommandList("CMDList");

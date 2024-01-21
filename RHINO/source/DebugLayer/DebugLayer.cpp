@@ -23,6 +23,25 @@ namespace RHINO::DebugLayer {
 
     ComputePSO* DebugLayer::CompileComputePSO(const ComputePSODesc& desc) noexcept {
         auto* result = m_Wrapped->CompileComputePSO(desc);
+
+        std::set<size_t> usedSpaces{};
+        for (size_t space = 0; space <= desc.spacesCount; ++space) {
+            if (usedSpaces.contains(desc.spacesDescs[space].space)) {
+                DB("Redefined descrioptor space ["s + std::to_string(desc.spacesDescs[space].space) + "]."s);
+            }
+            usedSpaces.insert(desc.spacesDescs[space].space);
+            if (desc.spacesDescs[space].rangeDescCount) {
+                bool isSampler = desc.spacesDescs[space].rangeDescs[0].rangeType == DescriptorType::Sampler;
+                for (size_t range = 0; range < desc.spacesDescs[space].rangeDescCount; ++range) {
+                    if (!(desc.spacesDescs[space].rangeDescs[0].rangeType == DescriptorType::Sampler &&  isSampler)) {
+                        DB("Invalid descriptor range type. You can either SRV/UAV/CBV or Sampler per descriptor space. Space ["s + std::to_string(space) + "] range ["s + std::to_string(range) + "]");
+                    }
+                }
+            } else {
+                DB("Invalid descriptor space descriptor ranges count. At least one descriptor range per descriptor space is mandatory. Space ["s + std::to_string(space) + "]");
+            }
+        }
+
         return result;
     }
 

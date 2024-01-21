@@ -6,6 +6,8 @@
 #include "RHINOTypes.h"
 
 #include <cstdlib>
+#include <map>
+#include <set>
 #include <vector>
 #include <string>
 #include <cassert>

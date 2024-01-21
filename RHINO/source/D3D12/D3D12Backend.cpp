@@ -6,6 +6,8 @@
 #include "D3D12CommandList.h"
 
 #pragma comment( lib, "dxguid.lib")
+#include <dxgi.h>
+
 
 #define RHINO_VALIDATE_D3D_RESULT(expr) expr
 #define RHINO_GPU_DEBUG(expr) expr
@@ -54,6 +56,12 @@ namespace RHINO::APID3D12 {
     }
 
     void D3D12Backend::Initialize() noexcept {
+        IDXGIFactory* factory = nullptr;
+        CreateDXGIFactory(IID_PPV_ARGS(&factory));
+        factory->EnumAdapters();
+
+        RHINO_VALIDATE_D3D_RESULT(D3D12CreateDevice(adapter, D3D_FEATURE_LEVEL::D3D_FEATURE_LEVEL_12_2, IID_PPV_ARGS(&m_Device)));
+        factory->Release();
     }
 
     void D3D12Backend::Release() noexcept {
