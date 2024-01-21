@@ -30,6 +30,9 @@ namespace RHINO {
         // RESOURCE MANAGEMENT
         virtual Buffer* CreateBuffer(size_t size, ResourceHeapType heapType, ResourceUsage usage, size_t structuredStride, const char* name) noexcept = 0;
         virtual void ReleaseBuffer(Buffer* buffer) noexcept = 0;
+        virtual void* MapMemory(Buffer* buffer, size_t offset, size_t size) noexcept = 0;
+        virtual void UnmapMemory(Buffer* buffer) noexcept = 0;
+
         virtual Texture2D* CreateTexture2D() noexcept = 0;
         virtual void ReleaseTexture2D(Texture2D* texture) noexcept = 0;
 

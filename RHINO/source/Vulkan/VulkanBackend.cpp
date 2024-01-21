@@ -319,6 +319,18 @@ namespace RHINO::APIVulkan {
     void VulkanBackend::ReleaseBuffer(Buffer* buffer) noexcept {
     }
 
+    void* VulkanBackend::MapMemory(Buffer* buffer, size_t offset, size_t size) noexcept {
+        auto* vulkanBuffer = static_cast<VulkanBuffer*>(buffer);
+        void* result;
+        vkMapMemory(m_Device, vulkanBuffer->memory, offset, size, 0, &result);
+        return result;
+    }
+
+    void VulkanBackend::UnmapMemory(Buffer* buffer) noexcept {
+        auto* vulkanBuffer = static_cast<VulkanBuffer*>(buffer);
+        vkUnmapMemory(m_Device, vulkanBuffer->memory);
+    }
+
     Texture2D* VulkanBackend::CreateTexture2D() noexcept {
         return nullptr;
     }
@@ -417,6 +429,8 @@ namespace RHINO::APIVulkan {
         submitInfo.waitSemaphoreCount = 0;
 
         vkQueueSubmit(m_DefaultQueue, 1, &submitInfo, VK_NULL_HANDLE);
+
+        vkDeviceWaitIdle(m_Device); //TODO: REMOVE
     }
 
     uint32_t VulkanBackend::SelectMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) noexcept {

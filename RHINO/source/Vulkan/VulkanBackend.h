@@ -24,6 +24,8 @@ namespace RHINO::APIVulkan {
 
         Buffer* CreateBuffer(size_t size, ResourceHeapType heapType, ResourceUsage usage, size_t structuredStride, const char* name) noexcept final;
         void ReleaseBuffer(Buffer* buffer) noexcept final;
+        void* MapMemory(Buffer* buffer, size_t offset, size_t size) noexcept final;
+        void UnmapMemory(Buffer* buffer) noexcept final;
         Texture2D* CreateTexture2D() noexcept final;
         void ReleaseTexture2D(Texture2D* texture) noexcept final;
         DescriptorHeap* CreateDescriptorHeap(DescriptorHeapType type, size_t descriptorsCount, const char* name) noexcept final;

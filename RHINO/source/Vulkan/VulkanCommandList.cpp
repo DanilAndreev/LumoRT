@@ -5,6 +5,16 @@
 #include "VulkanDescriptorHeap.h"
 
 namespace RHINO::APIVulkan {
+    void VulkanCommandList::CopyBuffer(Buffer* src, Buffer* dst, size_t srcOffset, size_t dstOffset, size_t size) noexcept {
+        auto* vulkanSrc = static_cast<VulkanBuffer*>(src);
+        auto* vulkanDst = static_cast<VulkanBuffer*>(dst);
+        VkBufferCopy region{};
+        region.size = size;
+        region.srcOffset = srcOffset;
+        region.dstOffset = dstOffset;
+        vkCmdCopyBuffer(cmd, vulkanSrc->buffer, vulkanDst->buffer, 1, &region);
+    }
+
     void VulkanCommandList::Dispatch(const DispatchDesc& desc) noexcept {
         vkCmdDispatch(cmd, desc.dimensionsX, desc.dimensionsY, desc.dimensionsZ);
     }

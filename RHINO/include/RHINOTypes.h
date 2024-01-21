@@ -1,7 +1,13 @@
 #pragma once
 
 #include <cstdint>
-#include <cstdlib>
+
+#define RHINO_DECLARE_BITMASK_ENUM(enumType)    \
+    enumType operator&(enumType a, enumType b); \
+    enumType operator|(enumType a, enumType b); \
+    bool operator||(bool a, enumType b);        \
+    bool operator&&(bool a, enumType b);        \
+    bool operator!(enumType a);
 
 namespace RHINO {
     class Buffer;
@@ -22,8 +28,7 @@ namespace RHINO {
         Readback,
     };
 
-    enum class ResourceUsage : size_t
-    {
+    enum class ResourceUsage : size_t {
         None = 0x0,
         VertexBuffer = 0x1,
         IndexBuffer = 0x2,
@@ -36,8 +41,7 @@ namespace RHINO {
         ValidMask = 0xFF,
     };
 
-    enum class DescriptorHeapType
-    {
+    enum class DescriptorHeapType {
         SRV_CBV_UAV,
         RTV,
         DSV,
@@ -73,8 +77,8 @@ namespace RHINO {
 
     struct DescriptorRangeDesc {
         DescriptorRangeType rangeType = DescriptorRangeType::CBV;
-        size_t descriptorsCount = 0;
         size_t baseRegisterSlot = 0;
+        size_t descriptorsCount = 0;
     };
 
     struct DescriptorSpaceDesc {
@@ -110,7 +114,9 @@ namespace RHINO {
     class CommandList {
     public:
         virtual ~CommandList() noexcept = default;
+
     public:
+        virtual void CopyBuffer(Buffer* src, Buffer* dst, size_t srcOffset, size_t dstOffset, size_t size) noexcept = 0;
         virtual void Dispatch(const DispatchDesc& desc) noexcept = 0;
         virtual void Draw() noexcept = 0;
         virtual void SetComputePSO(ComputePSO* pso) noexcept = 0;
@@ -137,6 +143,7 @@ namespace RHINO {
     class DescriptorHeap {
     public:
         virtual ~DescriptorHeap() noexcept = default;
+
     public:
         virtual void WriteSRV(const WriteBufferSRVDesc& desc) noexcept = 0;
         virtual void WriteUAV(const WriteBufferSRVDesc& desc) noexcept = 0;
@@ -148,4 +155,6 @@ namespace RHINO {
         virtual void WriteSRV(const WriteTexture3DSRVDesc& desc) noexcept = 0;
         virtual void WriteUAV(const WriteTexture3DSRVDesc& desc) noexcept = 0;
     };
-}
+}// namespace RHINO
+
+RHINO_DECLARE_BITMASK_ENUM(RHINO::ResourceUsage);

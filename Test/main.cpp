@@ -24,15 +24,29 @@ int main() {
     DescriptorHeap* heap = rhi->CreateDescriptorHeap(DescriptorHeapType::SRV_CBV_UAV, 10, "Heap");
 
     Buffer* bufCBV = rhi->CreateBuffer(64, ResourceHeapType::Default, ResourceUsage::ConstantBuffer, 0, "ConstantB");
-    Buffer* bufUAV = rhi->CreateBuffer(64, ResourceHeapType::Default, ResourceUsage::UnorderedAccess, 0, "ConstantB");
+
+    Buffer* destUAV1 = rhi->CreateBuffer(sizeof(int) * 64, ResourceHeapType::Default, ResourceUsage::UnorderedAccess | ResourceUsage::CopySource, 0, "DestUAV1");
+    Buffer* destUAV2 = rhi->CreateBuffer(sizeof(int) * 64, ResourceHeapType::Default, ResourceUsage::UnorderedAccess | ResourceUsage::CopySource, 0, "DestUAV2");
+    Buffer* destUAV3 = rhi->CreateBuffer(sizeof(int) * 64, ResourceHeapType::Default, ResourceUsage::UnorderedAccess | ResourceUsage::CopySource, 0, "DestUAV3");
+    Buffer* rbkUAV1 = rhi->CreateBuffer(sizeof(int) * 64, ResourceHeapType::Readback, ResourceUsage::CopyDest, 0, "DestUAV1");
+    Buffer* rbkUAV2 = rhi->CreateBuffer(sizeof(int) * 64, ResourceHeapType::Readback, ResourceUsage::CopyDest, 0, "DestUAV2");
+    Buffer* rbkUAV3 = rhi->CreateBuffer(sizeof(int) * 64, ResourceHeapType::Readback, ResourceUsage::CopyDest, 0, "DestUAV3");
 
     WriteBufferSRVDesc desc{};
     desc.offsetInHeap = 0;
     desc.bufferOffset = 0;
-    desc.buffer = bufCBV;
-    heap->WriteCBV(desc);
-    desc.buffer = bufUAV;
+    // desc.buffer = bufCBV;
+    // heap->WriteCBV(desc);
+
+
+    desc.buffer = destUAV1;
+    desc.offsetInHeap = 0;
+    heap->WriteUAV(desc);
+    desc.buffer = destUAV2;
     desc.offsetInHeap = 1;
+    heap->WriteUAV(desc);
+    desc.buffer = destUAV3;
+    desc.offsetInHeap = 3;
     heap->WriteUAV(desc);
 
     std::ifstream shaderFile{"layouts.compute.spirv", std::ios::binary | std::ios::ate};
@@ -42,10 +56,8 @@ int main() {
     assert(bytecode.size() % 4 == 0);
 
     const DescriptorRangeDesc space0rd[] = {
-        DescriptorRangeDesc{DescriptorRangeType::SRV, 2, 0},
-        DescriptorRangeDesc{DescriptorRangeType::SRV, 1, 3},
-        DescriptorRangeDesc{DescriptorRangeType::UAV, 1, 4},
-        DescriptorRangeDesc{DescriptorRangeType::UAV, 1, 6},
+        DescriptorRangeDesc{DescriptorRangeType::UAV, 0, 2},
+        DescriptorRangeDesc{DescriptorRangeType::UAV, 3, 1},
     };
 
     const DescriptorSpaceDesc spaces[] = {
@@ -69,9 +81,22 @@ int main() {
 
     rhi->SubmitCommandList(cmd);
 
+    CommandList* cmd2 = rhi->AllocateCommandList("CMDList");
+    cmd2->CopyBuffer(destUAV1, rbkUAV1, 0, 0, sizeof(int) * 64);
+    cmd2->CopyBuffer(destUAV2, rbkUAV2, 0, 0, sizeof(int) * 64);
+    cmd2->CopyBuffer(destUAV3, rbkUAV3, 0, 0, sizeof(int) * 64);
+    rhi->SubmitCommandList(cmd2);
+
+
+    auto* data1 = static_cast<int*>(rhi->MapMemory(rbkUAV1, 0, sizeof(int) * 64));
+    auto* data2 = static_cast<int*>(rhi->MapMemory(rbkUAV2, 0, sizeof(int) * 64));
+    auto* data3 = static_cast<int*>(rhi->MapMemory(rbkUAV3, 0, sizeof(int) * 64));
+
     rhi->ReleaseDescriptorHeap(heap);
     rhi->ReleaseBuffer(bufCBV);
-    rhi->ReleaseBuffer(bufUAV);
+    rhi->ReleaseBuffer(destUAV1);
+    rhi->ReleaseBuffer(destUAV2);
+    rhi->ReleaseBuffer(destUAV3);
     rhi->Release();
     delete rhi;
 }

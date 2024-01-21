@@ -7,6 +7,7 @@
 namespace RHINO::APIVulkan {
     class VulkanCommandList : public CommandList {
     public:
+        void CopyBuffer(Buffer* src, Buffer* dst, size_t srcOffset, size_t dstOffset, size_t size) noexcept final;
         void Dispatch(const DispatchDesc& desc) noexcept final;
         void Draw() noexcept final;
         void SetComputePSO(ComputePSO* pso) noexcept final;
