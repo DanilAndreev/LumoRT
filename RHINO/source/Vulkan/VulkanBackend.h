@@ -47,8 +47,11 @@ namespace RHINO::APIVulkan {
         VkPhysicalDevice m_PhysicalDevice = VK_NULL_HANDLE;
 
         VkQueue m_DefaultQueue = VK_NULL_HANDLE;
+        uint32_t m_DefaultQueueFamIndex = 0;
         VkQueue m_AsyncComputeQueue = VK_NULL_HANDLE;
+        uint32_t m_AsyncComputeQueueFamIndex = 0;
         VkQueue m_CopyQueue = VK_NULL_HANDLE;
+        uint32_t m_CopyQueueFamIndex = 0;
 
         VkAllocationCallbacks* m_Alloc = nullptr;
     };

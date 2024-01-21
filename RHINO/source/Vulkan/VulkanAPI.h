@@ -2,9 +2,10 @@
 
 #ifdef ENABLE_API_VULKAN
 
-#define RHINO_VULKAN_API_FUNCS()    \
-    RHINO_APPLY(vkGetDescriptorEXT) \
-    RHINO_APPLY(vkCmdBindDescriptorBuffersEXT)
+#define RHINO_VULKAN_API_FUNCS()               \
+    RHINO_APPLY(vkGetDescriptorEXT)            \
+    RHINO_APPLY(vkCmdBindDescriptorBuffersEXT) \
+    RHINO_APPLY(vkCmdSetDescriptorBufferOffsetsEXT)
 
 
 namespace RHINO::APIVulkan {

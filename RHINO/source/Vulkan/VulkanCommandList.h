@@ -11,13 +11,10 @@ namespace RHINO::APIVulkan {
         void Draw() noexcept final;
         void SetComputePSO(ComputePSO* pso) noexcept final;
         void SetRTPSO(RTPSO* pso) noexcept final;
-        void SetHeap(DescriptorHeap* heap) noexcept final;
+        void SetHeap(DescriptorHeap* CBVSRVUAVHeap, DescriptorHeap* SamplerHeap) noexcept final;
 
     public:
         VkCommandBuffer cmd = VK_NULL_HANDLE;
-
-    private:
-        VulkanComputePSO* m_ComputePSO = nullptr;
     };
 }// namespace RHINO::APIVulkan
 

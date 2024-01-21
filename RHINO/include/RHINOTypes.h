@@ -115,7 +115,7 @@ namespace RHINO {
         virtual void Draw() noexcept = 0;
         virtual void SetComputePSO(ComputePSO* pso) noexcept = 0;
         virtual void SetRTPSO(RTPSO* pso) noexcept = 0;
-        virtual void SetHeap(DescriptorHeap* heap) noexcept = 0;
+        virtual void SetHeap(DescriptorHeap* CBVSRVUAVHeap, DescriptorHeap* SamplerHeap) noexcept = 0;
     };
 
     struct WriteBufferSRVDesc {

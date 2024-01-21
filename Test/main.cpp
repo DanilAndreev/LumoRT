@@ -64,7 +64,7 @@ int main() {
 
     CommandList* cmd = rhi->AllocateCommandList("CMDList");
     cmd->SetComputePSO(pso);
-    cmd->SetHeap(heap);
+    cmd->SetHeap(heap, nullptr);
     cmd->Dispatch({1, 1, 1});
 
     rhi->SubmitCommandList(cmd);

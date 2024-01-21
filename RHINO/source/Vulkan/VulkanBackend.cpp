@@ -78,10 +78,14 @@ namespace RHINO::APIVulkan {
         deviceInfo.pQueueCreateInfos = queueInfos;
         vkCreateDevice(m_PhysicalDevice, &deviceInfo, m_Alloc, &m_Device);
 
-        vkGetDeviceQueue(m_Device, queueInfos[0].queueFamilyIndex, 0, &m_DefaultQueue);
+        m_DefaultQueueFamIndex = queueInfos[0].queueFamilyIndex;
+        m_AsyncComputeQueueFamIndex = queueInfos[1].queueFamilyIndex;
+        m_CopyQueueFamIndex = queueInfos[2].queueFamilyIndex;
+
+        vkGetDeviceQueue(m_Device, m_DefaultQueueFamIndex, 0, &m_DefaultQueue);
         //TODO: fix (get real mapping)
-        vkGetDeviceQueue(m_Device, queueInfos[1].queueFamilyIndex, 0, &m_AsyncComputeQueue);
-        vkGetDeviceQueue(m_Device, queueInfos[2].queueFamilyIndex, 0, &m_CopyQueue);
+        vkGetDeviceQueue(m_Device, m_AsyncComputeQueueFamIndex, 0, &m_AsyncComputeQueue);
+        vkGetDeviceQueue(m_Device, m_CopyQueueFamIndex, 0, &m_CopyQueue);
 
         LoadVulkanAPI(m_Instance, vkGetInstanceProcAddr);
     }
@@ -378,7 +382,25 @@ namespace RHINO::APIVulkan {
     }
 
     CommandList* VulkanBackend::AllocateCommandList(const char* name) noexcept {
-        return nullptr;
+        //TODO: add command list target queue;
+        auto* result = new VulkanCommandList{};
+        VkCommandPoolCreateInfo poolCreateInfo{VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO};
+        poolCreateInfo.queueFamilyIndex = m_DefaultQueueFamIndex;
+        VkCommandPool pool;
+        vkCreateCommandPool(m_Device, &poolCreateInfo, m_Alloc, &pool);
+        //TODO: move pools to apropriate VulkanBackend fields.
+
+        VkCommandBufferAllocateInfo cmdAlloc{VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO};
+        cmdAlloc.commandPool = pool;
+        cmdAlloc.commandBufferCount = 1;
+        cmdAlloc.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+        vkAllocateCommandBuffers(m_Device, &cmdAlloc, &result->cmd);
+
+        VkCommandBufferBeginInfo beginInfo{VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO};
+        beginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
+        beginInfo.pInheritanceInfo = nullptr;
+        vkBeginCommandBuffer(result->cmd, &beginInfo);
+        return result;
     }
 
     void VulkanBackend::ReleaseCommandList(CommandList* commandList) noexcept {
@@ -386,6 +408,8 @@ namespace RHINO::APIVulkan {
 
     void VulkanBackend::SubmitCommandList(CommandList* cmd) noexcept {
         auto* vulkanCMD = static_cast<VulkanCommandList*>(cmd);
+        vkEndCommandBuffer(vulkanCMD->cmd);
+
         VkSubmitInfo submitInfo{VK_STRUCTURE_TYPE_SUBMIT_INFO};
         submitInfo.commandBufferCount = 1;
         submitInfo.pCommandBuffers = &vulkanCMD->cmd;
