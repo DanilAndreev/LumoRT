@@ -43,6 +43,7 @@ namespace RHINO::APIVulkan {
         size_t CalculateDescriptorHandleIncrementSize(DescriptorHeapType heapType,  const VkPhysicalDeviceDescriptorBufferPropertiesEXT& descriptorProps) noexcept;
     private:
         static VkDescriptorType ToDescriptorType(DescriptorType type) noexcept;
+        static VkBufferUsageFlags ToBufferUsage(ResourceUsage usage) noexcept;
     private:
         VkInstance m_Instance = VK_NULL_HANDLE;
         VkDevice m_Device = VK_NULL_HANDLE;

@@ -140,16 +140,15 @@ namespace RHINO::APIVulkan {
             }
 
             static const VkDescriptorType ALLTypes[6] = {
-                VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
-                VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER,
-                VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
-            };
+                    VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
+                    VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER,
+                    VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER};
             static const VkDescriptorType CBVTypes[1] = {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER};
             static const VkDescriptorType SRVTypes[3] = {VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER};
             static const VkDescriptorType UAVTypes[3] = {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER};
 
             std::vector<VkMutableDescriptorTypeListEXT> mutableDescriptorTypeLists{};
-            mutableDescriptorTypeLists.resize( bindings.size());
+            mutableDescriptorTypeLists.resize(bindings.size());
             for (size_t i = 0; i < bindings.size(); ++i) {
                 if (rangeTypeByBinding.contains(i)) {
                     switch (rangeTypeByBinding[i]) {
@@ -281,14 +280,13 @@ namespace RHINO::APIVulkan {
     }
 
     Buffer* VulkanBackend::CreateBuffer(size_t size, ResourceHeapType heapType, ResourceUsage usage, size_t structuredStride, const char* name) noexcept {
-        //TODO: use heapType and usage
-
         auto* result = new VulkanBuffer{};
         result->size = size;
 
         VkBufferCreateInfo createInfo{VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO};
         createInfo.flags = 0;
-        createInfo.usage = VK_BUFFER_USAGE_RESOURCE_DESCRIPTOR_BUFFER_BIT_EXT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
+        createInfo.usage = ToBufferUsage(usage);
+        createInfo.usage |= VK_BUFFER_USAGE_RESOURCE_DESCRIPTOR_BUFFER_BIT_EXT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
         createInfo.size = size;
         createInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
         vkCreateBuffer(m_Device, &createInfo, m_Alloc, &result->buffer);
@@ -304,7 +302,15 @@ namespace RHINO::APIVulkan {
         VkMemoryAllocateInfo alloc{VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO};
         alloc.pNext = &allocateFlagsInfo;
         alloc.allocationSize = memReqs.size;
-        alloc.memoryTypeIndex = SelectMemoryType(0xffffff, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+        switch (heapType) {
+            case ResourceHeapType::Default:
+                alloc.memoryTypeIndex = SelectMemoryType(0xffffff, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+                break;
+            case ResourceHeapType::Upload:
+            case ResourceHeapType::Readback:
+                alloc.memoryTypeIndex = SelectMemoryType(0xffffff, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+                break;
+        }
         vkAllocateMemory(m_Device, &alloc, m_Alloc, &result->memory);
 
         vkBindBufferMemory(m_Device, result->buffer, result->memory, 0);
@@ -430,7 +436,7 @@ namespace RHINO::APIVulkan {
 
         vkQueueSubmit(m_DefaultQueue, 1, &submitInfo, VK_NULL_HANDLE);
 
-        vkDeviceWaitIdle(m_Device); //TODO: REMOVE
+        vkDeviceWaitIdle(m_Device);//TODO: REMOVE
     }
 
     uint32_t VulkanBackend::SelectMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) noexcept {
@@ -576,6 +582,34 @@ namespace RHINO::APIVulkan {
         }
     }
 
+    VkBufferUsageFlags VulkanBackend::ToBufferUsage(ResourceUsage usage) noexcept {
+        VkBufferUsageFlags result = 0;
+        if (bool(usage & ResourceUsage::VertexBuffer)) {
+            result |= VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+        }
+        if (bool(usage & ResourceUsage::IndexBuffer)) {
+            result |= VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
+        }
+        if (bool(usage & ResourceUsage::ConstantBuffer)) {
+            result |= VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+        }
+        if (bool(usage & ResourceUsage::ShaderResource)) {
+            result |= VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
+        }
+        if (bool(usage & ResourceUsage::UnorderedAccess)) {
+            result |= VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
+        }
+        if (bool(usage & ResourceUsage::Indirect)) {
+            result |= VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT;
+        }
+        if (bool(usage & ResourceUsage::CopySource)) {
+            result |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+        }
+        if (bool(usage & ResourceUsage::CopyDest)) {
+            result |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+        }
+        return result;
+    }
 }// namespace RHINO::APIVulkan
 
 #endif// ENABLE_API_VULKAN

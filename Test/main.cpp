@@ -92,6 +92,17 @@ int main() {
     auto* data2 = static_cast<int*>(rhi->MapMemory(rbkUAV2, 0, sizeof(int) * 64));
     auto* data3 = static_cast<int*>(rhi->MapMemory(rbkUAV3, 0, sizeof(int) * 64));
 
+    std::vector<int> vdata1{};
+    vdata1.resize(64);
+    std::vector<int> vdata2{};
+    vdata2.resize(64);
+    std::vector<int> vdata3{};
+    vdata3.resize(64);
+
+    memcpy(vdata1.data(), data1, sizeof(int) * 64);
+    memcpy(vdata2.data(), data2, sizeof(int) * 64);
+    memcpy(vdata3.data(), data3, sizeof(int) * 64);
+
     rhi->ReleaseDescriptorHeap(heap);
     rhi->ReleaseBuffer(bufCBV);
     rhi->ReleaseBuffer(destUAV1);
