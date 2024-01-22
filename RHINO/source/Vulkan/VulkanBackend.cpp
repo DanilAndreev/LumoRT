@@ -45,14 +45,11 @@ namespace RHINO::APIVulkan {
         VkPhysicalDeviceVulkan12Features physicalDeviceVulkan12Features{VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES};
         physicalDeviceVulkan12Features.runtimeDescriptorArray = VK_TRUE;
         physicalDeviceVulkan12Features.bufferDeviceAddress = VK_TRUE;
-        // physicalDeviceVulkan12Features.descriptorIndexing;
-
-        VkPhysicalDeviceDescriptorIndexingFeatures physicalDeviceDescriptorIndexingFeatures{VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_FEATURES};
-        physicalDeviceDescriptorIndexingFeatures.pNext = &physicalDeviceVulkan12Features;
-        physicalDeviceDescriptorIndexingFeatures.descriptorBindingVariableDescriptorCount = VK_TRUE;
+        physicalDeviceVulkan12Features.descriptorIndexing = VK_TRUE;
+        physicalDeviceVulkan12Features.descriptorBindingVariableDescriptorCount = VK_TRUE;
 
         VkPhysicalDeviceMutableDescriptorTypeFeaturesEXT deviceMutableDescriptorTypeFeaturesEXT{VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MUTABLE_DESCRIPTOR_TYPE_FEATURES_EXT};
-        deviceMutableDescriptorTypeFeaturesEXT.pNext = &physicalDeviceDescriptorIndexingFeatures;
+        deviceMutableDescriptorTypeFeaturesEXT.pNext = &physicalDeviceVulkan12Features;
         deviceMutableDescriptorTypeFeaturesEXT.mutableDescriptorType = VK_TRUE;
 
         VkPhysicalDeviceDescriptorBufferFeaturesEXT deviceDescriptorBufferFeaturesExt{VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_BUFFER_FEATURES_EXT};
@@ -70,7 +67,6 @@ namespace RHINO::APIVulkan {
         const char* deviceExtensions[] = {
                 VK_EXT_DESCRIPTOR_BUFFER_EXTENSION_NAME,
                 VK_EXT_MUTABLE_DESCRIPTOR_TYPE_EXTENSION_NAME,
-                VK_EXT_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME,
         };
         deviceInfo.enabledExtensionCount = RHINO_ARR_SIZE(deviceExtensions);
         deviceInfo.ppEnabledExtensionNames = deviceExtensions;
