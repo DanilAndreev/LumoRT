@@ -20,13 +20,13 @@ namespace RHINO::APIVulkan {
         instanceInfo.pApplicationInfo = &appInfo;
         instanceInfo.enabledExtensionCount = 0;
         instanceInfo.enabledLayerCount = 0;
-        vkCreateInstance(&instanceInfo, m_Alloc, &m_Instance);
+        RHINO_VKS(vkCreateInstance(&instanceInfo, m_Alloc, &m_Instance));
 
         std::vector<VkPhysicalDevice> physicalDevices{};
         uint32_t physicalDevicesCount = 0;
-        vkEnumeratePhysicalDevices(m_Instance, &physicalDevicesCount, nullptr);
+        RHINO_VKS(vkEnumeratePhysicalDevices(m_Instance, &physicalDevicesCount, nullptr));
         physicalDevices.resize(physicalDevicesCount);
-        vkEnumeratePhysicalDevices(m_Instance, &physicalDevicesCount, physicalDevices.data());
+        RHINO_VKS(vkEnumeratePhysicalDevices(m_Instance, &physicalDevicesCount, physicalDevices.data()));
 
         for (size_t i = 0; i < physicalDevices.size(); ++i) {
             VkPhysicalDeviceProperties props;
@@ -76,7 +76,8 @@ namespace RHINO::APIVulkan {
         deviceInfo.ppEnabledExtensionNames = deviceExtensions;
         deviceInfo.queueCreateInfoCount = queueInfosCount;
         deviceInfo.pQueueCreateInfos = queueInfos;
-        vkCreateDevice(m_PhysicalDevice, &deviceInfo, m_Alloc, &m_Device);
+        RHINO_VKS(vkCreateDevice(m_PhysicalDevice, &deviceInfo, m_Alloc, &m_Device));
+
 
         m_DefaultQueueFamIndex = queueInfos[0].queueFamilyIndex;
         m_AsyncComputeQueueFamIndex = queueInfos[1].queueFamilyIndex;
@@ -323,6 +324,11 @@ namespace RHINO::APIVulkan {
     }
 
     void VulkanBackend::ReleaseBuffer(Buffer* buffer) noexcept {
+        if (!buffer) return;
+        auto* vulkanBuffer = static_cast<VulkanBuffer*>(buffer);
+        vkDestroyBuffer(m_Device, vulkanBuffer->buffer, m_Alloc);
+        vkFreeMemory(m_Device, vulkanBuffer->memory, m_Alloc);
+        delete vulkanBuffer;
     }
 
     void* VulkanBackend::MapMemory(Buffer* buffer, size_t offset, size_t size) noexcept {
@@ -392,6 +398,7 @@ namespace RHINO::APIVulkan {
     }
 
     void VulkanBackend::ReleaseDescriptorHeap(DescriptorHeap* heap) noexcept {
+        if (!heap) return;
         auto* vulkanDescriptorHeap = static_cast<VulkanDescriptorHeap*>(heap);
         vkUnmapMemory(m_Device, vulkanDescriptorHeap->memory);
         vkDestroyBuffer(m_Device, vulkanDescriptorHeap->heap, m_Alloc);
@@ -404,12 +411,11 @@ namespace RHINO::APIVulkan {
         auto* result = new VulkanCommandList{};
         VkCommandPoolCreateInfo poolCreateInfo{VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO};
         poolCreateInfo.queueFamilyIndex = m_DefaultQueueFamIndex;
-        VkCommandPool pool;
-        vkCreateCommandPool(m_Device, &poolCreateInfo, m_Alloc, &pool);
+        vkCreateCommandPool(m_Device, &poolCreateInfo, m_Alloc, &result->pool);
         //TODO: move pools to apropriate VulkanBackend fields.
 
         VkCommandBufferAllocateInfo cmdAlloc{VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO};
-        cmdAlloc.commandPool = pool;
+        cmdAlloc.commandPool = result->pool;
         cmdAlloc.commandBufferCount = 1;
         cmdAlloc.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
         vkAllocateCommandBuffers(m_Device, &cmdAlloc, &result->cmd);
@@ -422,6 +428,11 @@ namespace RHINO::APIVulkan {
     }
 
     void VulkanBackend::ReleaseCommandList(CommandList* commandList) noexcept {
+        if (!commandList) return;
+        auto* vulkanCMD = static_cast<VulkanCommandList*>(commandList);
+        vkFreeCommandBuffers(m_Device, vulkanCMD->pool, 1, &vulkanCMD->cmd);
+        vkDestroyCommandPool(m_Device, vulkanCMD->pool, m_Alloc);
+        delete vulkanCMD;
     }
 
     void VulkanBackend::SubmitCommandList(CommandList* cmd) noexcept {

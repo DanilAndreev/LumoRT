@@ -1,5 +1,6 @@
 #include "RHINO.h"
 #include "Utils/Common.h"
+#include "RDOCIntegration.h"
 
 #include <cassert>
 #include <fstream>
@@ -19,6 +20,7 @@ std::vector<uint8_t> ReadBinary(std::istream& stream) noexcept {
 
 int main() {
     using namespace RHINO;
+
     RHINOInterface* rhi = CreateRHINO(BackendAPI::Vulkan);
     rhi->Initialize();
     DescriptorHeap* heap = rhi->CreateDescriptorHeap(DescriptorHeapType::SRV_CBV_UAV, 10, "Heap");
@@ -74,18 +76,22 @@ int main() {
     psoDesc.spacesDescs = spaces;
     ComputePSO* pso = rhi->CompileComputePSO(psoDesc);
 
+    // RDOCIntegration::StartCapture();
+
     CommandList* cmd = rhi->AllocateCommandList("CMDList");
     cmd->SetComputePSO(pso);
     cmd->SetHeap(heap, nullptr);
     cmd->Dispatch({1, 1, 1});
 
     rhi->SubmitCommandList(cmd);
+    rhi->ReleaseCommandList(cmd);
 
     CommandList* cmd2 = rhi->AllocateCommandList("CMDList");
     cmd2->CopyBuffer(destUAV1, rbkUAV1, 0, 0, sizeof(int) * 64);
     cmd2->CopyBuffer(destUAV2, rbkUAV2, 0, 0, sizeof(int) * 64);
     cmd2->CopyBuffer(destUAV3, rbkUAV3, 0, 0, sizeof(int) * 64);
     rhi->SubmitCommandList(cmd2);
+    rhi->ReleaseCommandList(cmd2);
 
 
     auto* data1 = static_cast<int*>(rhi->MapMemory(rbkUAV1, 0, sizeof(int) * 64));
@@ -102,6 +108,8 @@ int main() {
     memcpy(vdata1.data(), data1, sizeof(int) * 64);
     memcpy(vdata2.data(), data2, sizeof(int) * 64);
     memcpy(vdata3.data(), data3, sizeof(int) * 64);
+
+    // RDOCIntegration::EndCapture();
 
     rhi->ReleaseDescriptorHeap(heap);
     rhi->ReleaseBuffer(bufCBV);
