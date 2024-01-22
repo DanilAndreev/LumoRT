@@ -17,6 +17,9 @@ namespace RHINO::APIVulkan {
     public:
         VkCommandBuffer cmd = VK_NULL_HANDLE;
         VkCommandPool pool = VK_NULL_HANDLE; //TODO: move to rhi.
+    private:
+        VkDescriptorSet m_CBVSRVUAVHeap = VK_NULL_HANDLE;
+        VkDescriptorSet m_SamplerHeap = VK_NULL_HANDLE;
     };
 }// namespace RHINO::APIVulkan
 

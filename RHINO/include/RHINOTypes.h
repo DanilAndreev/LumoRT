@@ -43,8 +43,8 @@ namespace RHINO {
 
     enum class DescriptorHeapType {
         SRV_CBV_UAV,
-        RTV,
-        DSV,
+        // RTV,
+        // DSV,
         Sampler,
         Count,
     };

@@ -6,68 +6,78 @@
 namespace RHINO::APIVulkan {
     void VulkanDescriptorHeap::WriteSRV(const RHINO::WriteBufferSRVDesc& desc) noexcept {
         auto* vulkanBuffer = static_cast<VulkanBuffer*>(desc.buffer);
+        VkDescriptorBufferInfo bufferInfo{};
+        bufferInfo.buffer = vulkanBuffer->buffer;
+        bufferInfo.offset = desc.bufferOffset;
+        bufferInfo.range = VK_WHOLE_SIZE;
 
-        VkDescriptorAddressInfoEXT bufferInfo{VK_STRUCTURE_TYPE_DESCRIPTOR_ADDRESS_INFO_EXT};
-        bufferInfo.address = vulkanBuffer->deviceAddress + desc.bufferOffset;
-        bufferInfo.range = vulkanBuffer->size - desc.bufferOffset;
-        VkDescriptorGetInfoEXT info{VK_STRUCTURE_TYPE_DESCRIPTOR_GET_INFO_EXT};
-        info.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-        info.data.pStorageBuffer = &bufferInfo;
-
-        uint8_t* mem = static_cast<uint8_t*>(mapped);
-        EXT::vkGetDescriptorEXT(device, &info, descriptorProps.storageBufferDescriptorSize, mem + desc.offsetInHeap * descriptorHandleIncrementSize);
+        VkWriteDescriptorSet write{VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET};
+        write.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+        write.descriptorCount = 1;
+        write.dstBinding = desc.offsetInHeap;
+        write.dstArrayElement = 0;
+        write.dstSet = heap;
+        write.pBufferInfo = &bufferInfo;
     }
     void VulkanDescriptorHeap::WriteUAV(const WriteBufferSRVDesc& desc) noexcept {
         auto* vulkanBuffer = static_cast<VulkanBuffer*>(desc.buffer);
+        VkDescriptorBufferInfo bufferInfo{};
+        bufferInfo.buffer = vulkanBuffer->buffer;
+        bufferInfo.offset = desc.bufferOffset;
+        bufferInfo.range = VK_WHOLE_SIZE;
 
-        VkDescriptorAddressInfoEXT bufferInfo{VK_STRUCTURE_TYPE_DESCRIPTOR_ADDRESS_INFO_EXT};
-        bufferInfo.address = vulkanBuffer->deviceAddress + desc.bufferOffset;
-        bufferInfo.range = vulkanBuffer->size - desc.bufferOffset;
-        VkDescriptorGetInfoEXT info{VK_STRUCTURE_TYPE_DESCRIPTOR_GET_INFO_EXT};
-        info.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-        info.data.pStorageBuffer = &bufferInfo;
-
-        uint8_t* mem = static_cast<uint8_t*>(mapped);
-        EXT::vkGetDescriptorEXT(device, &info, descriptorProps.storageBufferDescriptorSize, mem + desc.offsetInHeap * descriptorHandleIncrementSize);
+        VkWriteDescriptorSet write{VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET};
+        write.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+        write.descriptorCount = 1;
+        write.dstBinding = desc.offsetInHeap;
+        write.dstArrayElement = 0;
+        write.dstSet = heap;
+        write.pBufferInfo = &bufferInfo;
     }
     void VulkanDescriptorHeap::WriteCBV(const WriteBufferSRVDesc& desc) noexcept {
         auto* vulkanBuffer = static_cast<VulkanBuffer*>(desc.buffer);
+        VkDescriptorBufferInfo bufferInfo{};
+        bufferInfo.buffer = vulkanBuffer->buffer;
+        bufferInfo.offset = desc.bufferOffset;
+        bufferInfo.range = VK_WHOLE_SIZE;
 
-        VkDescriptorAddressInfoEXT bufferInfo{VK_STRUCTURE_TYPE_DESCRIPTOR_ADDRESS_INFO_EXT};
-        bufferInfo.address = vulkanBuffer->deviceAddress + desc.bufferOffset;
-        bufferInfo.range = vulkanBuffer->size - desc.bufferOffset;
-        VkDescriptorGetInfoEXT info{VK_STRUCTURE_TYPE_DESCRIPTOR_GET_INFO_EXT};
-        info.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        info.data.pUniformBuffer = &bufferInfo;
-
-        uint8_t* mem = static_cast<uint8_t*>(mapped);
-        EXT::vkGetDescriptorEXT(device, &info, descriptorProps.uniformBufferDescriptorSize, mem + desc.offsetInHeap * descriptorHandleIncrementSize);
+        VkWriteDescriptorSet write{VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET};
+        write.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        write.descriptorCount = 1;
+        write.dstBinding = desc.offsetInHeap;
+        write.dstArrayElement = 0;
+        write.dstSet = heap;
+        write.pBufferInfo = &bufferInfo;
     }
     void VulkanDescriptorHeap::WriteSRV(const WriteTexture2DSRVDesc& desc) noexcept {
-        auto* vulkanTexture = static_cast<VulkanTexture2D*>(desc.texture);
+        auto* vulkanTexture2D = static_cast<VulkanTexture2D*>(desc.texture);
+        VkDescriptorImageInfo imageInfo{};
+        imageInfo.sampler = VK_NULL_HANDLE;
+        imageInfo.imageLayout = vulkanTexture2D->layout;
+        imageInfo.imageView = VK_NULL_HANDLE; //TODO: finish
 
-        VkDescriptorImageInfo textureInfo{};
-        textureInfo.imageLayout = vulkanTexture->layout;
-        textureInfo.imageView = vulkanTexture->view;
-        VkDescriptorGetInfoEXT info{VK_STRUCTURE_TYPE_DESCRIPTOR_GET_INFO_EXT};
-        info.type = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
-        info.data.pSampledImage = &textureInfo;
-
-        uint8_t* mem = static_cast<uint8_t*>(mapped);
-        EXT::vkGetDescriptorEXT(device, &info, descriptorProps.sampledImageDescriptorSize, mem + desc.offsetInHeap * descriptorHandleIncrementSize);
+        VkWriteDescriptorSet write{VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET};
+        write.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+        write.descriptorCount = 1;
+        write.dstBinding = desc.offsetInHeap;
+        write.dstArrayElement = 0;
+        write.dstSet = heap;
+        write.pImageInfo = &imageInfo;
     }
     void VulkanDescriptorHeap::WriteUAV(const WriteTexture2DSRVDesc& desc) noexcept {
-        auto* vulkanTexture = static_cast<VulkanTexture2D*>(desc.texture);
+        auto* vulkanTexture2D = static_cast<VulkanTexture2D*>(desc.texture);
+        VkDescriptorImageInfo imageInfo{};
+        imageInfo.sampler = VK_NULL_HANDLE;
+        imageInfo.imageLayout = vulkanTexture2D->layout;
+        imageInfo.imageView = VK_NULL_HANDLE; //TODO: finish
 
-        VkDescriptorImageInfo textureInfo{};
-        textureInfo.imageLayout = vulkanTexture->layout;
-        textureInfo.imageView = vulkanTexture->view;
-        VkDescriptorGetInfoEXT info{VK_STRUCTURE_TYPE_DESCRIPTOR_GET_INFO_EXT};
-        info.type = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-        info.data.pStorageImage = &textureInfo;
-
-        uint8_t* mem = static_cast<uint8_t*>(mapped);
-        EXT::vkGetDescriptorEXT(device, &info, descriptorProps.storageImageDescriptorSize, mem + desc.offsetInHeap * descriptorHandleIncrementSize);
+        VkWriteDescriptorSet write{VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET};
+        write.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+        write.descriptorCount = 1;
+        write.dstBinding = desc.offsetInHeap;
+        write.dstArrayElement = 0;
+        write.dstSet = heap;
+        write.pImageInfo = &imageInfo;
     }
     void VulkanDescriptorHeap::WriteSRV(const WriteTexture3DSRVDesc& desc) noexcept {
     }

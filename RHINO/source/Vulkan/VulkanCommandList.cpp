@@ -24,13 +24,12 @@ namespace RHINO::APIVulkan {
 
     void VulkanCommandList::SetComputePSO(ComputePSO* pso) noexcept {
         auto* vulkanPSO = static_cast<VulkanComputePSO*>(pso);
-        vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, vulkanPSO->PSO);
         for (auto [space, spaceInfo] : vulkanPSO->heapOffsetsBySpaces) {
-            uint32_t bufferIndex = spaceInfo.first == DescriptorRangeType::Sampler ? 1 : 0;
-            VkDeviceSize offset = spaceInfo.second;
-            EXT::vkCmdSetDescriptorBufferOffsetsEXT(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, vulkanPSO->layout,
-                                                    space, 1, &bufferIndex, &offset);
+            VkDescriptorSet heap = spaceInfo.first == DescriptorRangeType::Sampler ? m_SamplerHeap : m_CBVSRVUAVHeap;
+            uint32_t offset = spaceInfo.second;
+            vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, vulkanPSO->layout, space, 1, &heap,1, &offset);
         }
+        vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, vulkanPSO->PSO);
     }
 
     void VulkanCommandList::SetRTPSO(RTPSO* pso) noexcept {
@@ -38,20 +37,12 @@ namespace RHINO::APIVulkan {
     }
 
     void VulkanCommandList::SetHeap(DescriptorHeap* CBVSRVUAVHeap, DescriptorHeap* SamplerHeap) noexcept {
-        VkDescriptorBufferBindingInfoEXT bindings[2] = {};
         auto* vulkanCBVSRVUAVHeap = static_cast<VulkanDescriptorHeap*>(CBVSRVUAVHeap);
-        VkDescriptorBufferBindingInfoEXT bindingCBVSRVUAV{VK_STRUCTURE_TYPE_DESCRIPTOR_BUFFER_BINDING_INFO_EXT};
-        bindingCBVSRVUAV.address = vulkanCBVSRVUAVHeap->heapGPUStartHandle;
-        bindingCBVSRVUAV.usage = VK_BUFFER_USAGE_RESOURCE_DESCRIPTOR_BUFFER_BIT_EXT;
-        bindings[0] = bindingCBVSRVUAV;
+        m_CBVSRVUAVHeap = vulkanCBVSRVUAVHeap->heap;
         if (SamplerHeap) {
             auto* vulkanSamplerHeap = static_cast<VulkanDescriptorHeap*>(SamplerHeap);
-            VkDescriptorBufferBindingInfoEXT bindingSampler{VK_STRUCTURE_TYPE_DESCRIPTOR_BUFFER_BINDING_INFO_EXT};
-            bindingSampler.address = vulkanSamplerHeap->heapGPUStartHandle;
-            bindingSampler.usage = VK_BUFFER_USAGE_RESOURCE_DESCRIPTOR_BUFFER_BIT_EXT;
-            bindings[1] = bindingSampler;
+            m_SamplerHeap = vulkanSamplerHeap->heap;
         }
-        EXT::vkCmdBindDescriptorBuffersEXT(cmd, SamplerHeap ? 2 : 1, bindings);
     }
 }// namespace RHINO::APIVulkan
 

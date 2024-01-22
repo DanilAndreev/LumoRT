@@ -23,6 +23,9 @@ int main() {
 
     RHINOInterface* rhi = CreateRHINO(BackendAPI::Vulkan);
     rhi->Initialize();
+
+    RDOCIntegration::StartCapture();
+
     DescriptorHeap* heap = rhi->CreateDescriptorHeap(DescriptorHeapType::SRV_CBV_UAV, 10, "Heap");
 
     Buffer* bufCBV = rhi->CreateBuffer(64, ResourceHeapType::Default, ResourceUsage::ConstantBuffer, 0, "ConstantB");
@@ -76,8 +79,6 @@ int main() {
     psoDesc.spacesDescs = spaces;
     ComputePSO* pso = rhi->CompileComputePSO(psoDesc);
 
-    // RDOCIntegration::StartCapture();
-
     CommandList* cmd = rhi->AllocateCommandList("CMDList");
     cmd->SetComputePSO(pso);
     cmd->SetHeap(heap, nullptr);
@@ -109,7 +110,8 @@ int main() {
     memcpy(vdata2.data(), data2, sizeof(int) * 64);
     memcpy(vdata3.data(), data3, sizeof(int) * 64);
 
-    // RDOCIntegration::EndCapture();
+
+    RDOCIntegration::EndCapture();
 
     rhi->ReleaseComputePSO(pso);
     rhi->ReleaseDescriptorHeap(heap);
@@ -121,5 +123,6 @@ int main() {
     rhi->ReleaseBuffer(destUAV2);
     rhi->ReleaseBuffer(destUAV3);
     rhi->Release();
+
     delete rhi;
 }

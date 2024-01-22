@@ -52,20 +52,14 @@ namespace RHINO::APIVulkan {
         deviceMutableDescriptorTypeFeaturesEXT.pNext = &physicalDeviceVulkan12Features;
         deviceMutableDescriptorTypeFeaturesEXT.mutableDescriptorType = VK_TRUE;
 
-        VkPhysicalDeviceDescriptorBufferFeaturesEXT deviceDescriptorBufferFeaturesExt{VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_BUFFER_FEATURES_EXT};
-        deviceDescriptorBufferFeaturesExt.pNext = &deviceMutableDescriptorTypeFeaturesEXT;
-        deviceDescriptorBufferFeaturesExt.descriptorBuffer = VK_TRUE;
-        deviceDescriptorBufferFeaturesExt.descriptorBufferPushDescriptors = VK_TRUE;
-
         VkPhysicalDeviceFeatures2 deviceFeatures2{VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2};
-        deviceFeatures2.pNext = &deviceDescriptorBufferFeaturesExt;
+        deviceFeatures2.pNext = &deviceMutableDescriptorTypeFeaturesEXT;
         deviceFeatures2.features = {};
 
 
         VkDeviceCreateInfo deviceInfo{VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO};
         deviceInfo.pNext = &deviceFeatures2;
         const char* deviceExtensions[] = {
-                VK_EXT_DESCRIPTOR_BUFFER_EXTENSION_NAME,
                 VK_EXT_MUTABLE_DESCRIPTOR_TYPE_EXTENSION_NAME,
         };
         deviceInfo.enabledExtensionCount = RHINO_ARR_SIZE(deviceExtensions);
@@ -114,6 +108,8 @@ namespace RHINO::APIVulkan {
         spaceLayouts.resize(desc.spacesCount);
         for (size_t space = 0; space < desc.spacesCount; ++space) {
             const DescriptorSpaceDesc& spaceDesc = desc.spacesDescs[space];
+            result->heapOffsetsBySpaces[space] = std::make_pair(spaceDesc.rangeDescs[0].rangeType, spaceDesc.offsetInDescriptorsFromTableStart);
+
             std::vector<VkDescriptorSetLayoutBinding> bindings{};
             bindings.resize(topBindingPerSpace[space]);
 
@@ -180,68 +176,6 @@ namespace RHINO::APIVulkan {
             vkCreateDescriptorSetLayout(m_Device, &setLayoutCreateInfo, m_Alloc, &spaceLayouts[space]);
         }
 
-        // std::vector<VkDescriptorSetLayoutBinding> bindings{};
-        // bindings.resize(desc.rangeDescCount);
-        // for (size_t i = 0; i < desc.rangeDescCount; ++i) {
-        //     const DescriptorRangeDesc& rangeDesc = desc.rangeDescs[i];
-        //
-        //     VkDescriptorSetLayoutBinding binding{};
-        //     binding.binding = rangeDesc.registerSlot;
-        //     binding.descriptorCount = rangeDesc.descriptorsCount;
-        //     binding.descriptorType = VK_DESCRIPTOR_TYPE_MUTABLE_EXT;
-        //     // binding.descriptorType = ToDescriptorType(rangeDesc.rangeType);
-        // }
-        //
-        //
-        // VkDescriptorSetLayoutCreateInfo setLayoutCreateInfo{VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO};
-        // // setLayoutCreateInfo.pNext = &mutableDescriptorTypeCreateInfoExt;
-        // setLayoutCreateInfo.flags = VK_DESCRIPTOR_SET_LAYOUT_CREATE_DESCRIPTOR_BUFFER_BIT_EXT;
-        // setLayoutCreateInfo.bindingCount = bindings.size();
-        // setLayoutCreateInfo.pBindings = bindings.data();
-        //
-        // VkDescriptorSetLayout setLayoutCBVSRVUAV = VK_NULL_HANDLE;
-        // vkCreateDescriptorSetLayout(m_Device, &setLayoutCreateInfo, m_Alloc, &setLayoutCBVSRVUAV);
-        //
-        // VkDescriptorSetLayoutBindingFlagsCreateInfo setLayoutBindingFlagsCreateInfo{VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO};
-        // setLayoutBindingFlagsCreateInfo.bindingCount = 1;
-        // VkDescriptorBindingFlags flags = VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT;
-        // setLayoutBindingFlagsCreateInfo.pBindingFlags = &flags;
-        //
-        // VkDescriptorType descriptorTypes[] = {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-        //                                       VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE};
-        // VkMutableDescriptorTypeListEXT mutableDescriptorTypeList{};
-        // mutableDescriptorTypeList.descriptorTypeCount = RHINO_ARR_SIZE(descriptorTypes);
-        // mutableDescriptorTypeList.pDescriptorTypes = descriptorTypes;
-        // VkMutableDescriptorTypeCreateInfoEXT mutableDescriptorTypeCreateInfoExt{VK_STRUCTURE_TYPE_MUTABLE_DESCRIPTOR_TYPE_CREATE_INFO_EXT};
-        // mutableDescriptorTypeCreateInfoExt.pNext = &setLayoutBindingFlagsCreateInfo;
-        // mutableDescriptorTypeCreateInfoExt.mutableDescriptorTypeListCount = 1;
-        // mutableDescriptorTypeCreateInfoExt.pMutableDescriptorTypeLists = &mutableDescriptorTypeList;
-        //
-        // VkDescriptorSetLayoutBinding bindingSRVUAVCBV{};
-        // bindingSRVUAVCBV.binding = 0;
-        // bindingSRVUAVCBV.descriptorCount = desc.visibleCBVSRVUAVDescriptorCount;
-        // bindingSRVUAVCBV.descriptorType = VK_DESCRIPTOR_TYPE_MUTABLE_EXT;
-        //
-        // VkDescriptorSetLayoutCreateInfo setLayoutCreateInfo{VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO};
-        // setLayoutCreateInfo.pNext = &mutableDescriptorTypeCreateInfoExt;
-        // setLayoutCreateInfo.flags = VK_DESCRIPTOR_SET_LAYOUT_CREATE_DESCRIPTOR_BUFFER_BIT_EXT;
-        // setLayoutCreateInfo.bindingCount = 1;
-        // setLayoutCreateInfo.pBindings = &bindingSRVUAVCBV;
-        //
-        // VkDescriptorSetLayout setLayoutCBVSRVUAV = VK_NULL_HANDLE;
-        // vkCreateDescriptorSetLayout(m_Device, &setLayoutCreateInfo, m_Alloc, &setLayoutCBVSRVUAV);
-        //
-        // VkDescriptorSetLayoutBinding bindingSampler{};
-        // bindingSRVUAVCBV.binding = 0;
-        // bindingSRVUAVCBV.descriptorCount = desc.visibleCBVSRVUAVDescriptorCount;
-        // bindingSRVUAVCBV.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;
-        //
-        // setLayoutCreateInfo.pNext = nullptr;
-        // setLayoutCreateInfo.pBindings = &bindingSampler;
-        // VkDescriptorSetLayout setLayoutSampler = VK_NULL_HANDLE;
-        // vkCreateDescriptorSetLayout(m_Device, &setLayoutCreateInfo, m_Alloc, &setLayoutSampler);
-        // VkDescriptorSetLayout setLayouts[] = {setLayoutCBVSRVUAV, setLayoutSampler};
-
         VkPipelineLayoutCreateInfo layoutInfo{VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO};
         layoutInfo.pushConstantRangeCount = 0;
         layoutInfo.setLayoutCount = spaceLayouts.size();
@@ -287,7 +221,7 @@ namespace RHINO::APIVulkan {
         VkBufferCreateInfo createInfo{VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO};
         createInfo.flags = 0;
         createInfo.usage = ToBufferUsage(usage);
-        createInfo.usage |= VK_BUFFER_USAGE_RESOURCE_DESCRIPTOR_BUFFER_BIT_EXT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
+        createInfo.usage |= VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
         createInfo.size = size;
         createInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
         vkCreateBuffer(m_Device, &createInfo, m_Alloc, &result->buffer);
@@ -354,55 +288,59 @@ namespace RHINO::APIVulkan {
         auto* result = new VulkanDescriptorHeap{};
         result->device = m_Device;
 
-        VkPhysicalDeviceDescriptorBufferPropertiesEXT descriptorProps{VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_BUFFER_PROPERTIES_EXT};
-        VkPhysicalDeviceProperties2 props{VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2};
-        props.pNext = &descriptorProps;
-        vkGetPhysicalDeviceProperties2(m_PhysicalDevice, &props);
+        VkDescriptorPoolSize poolSize{};
+        poolSize.descriptorCount = type == DescriptorHeapType::SRV_CBV_UAV ? VK_DESCRIPTOR_TYPE_MUTABLE_EXT : VK_DESCRIPTOR_TYPE_SAMPLER;
+        poolSize.descriptorCount = descriptorsCount;
 
-        result->descriptorProps = descriptorProps;
+        VkDescriptorPoolCreateInfo poolCreateInfo{VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO};
+        poolCreateInfo.maxSets = 1;
+        poolCreateInfo.poolSizeCount = 1;
+        poolCreateInfo.pPoolSizes = &poolSize;
+        vkCreateDescriptorPool(m_Device, &poolCreateInfo, m_Alloc, &result->pool);
 
-        result->descriptorHandleIncrementSize = CalculateDescriptorHandleIncrementSize(type, descriptorProps);
+        static const VkDescriptorType ALLTypes[6] = {
+            VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
+            VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER,
+            VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER};
 
-        result->heapSize = result->descriptorHandleIncrementSize * descriptorsCount;
+        std::vector<VkDescriptorSetLayoutBinding> bindings{};
+        bindings.resize(descriptorsCount);
+        std::vector<VkMutableDescriptorTypeListEXT> mutableDescriptorTypeLists{};
+        mutableDescriptorTypeLists.resize(descriptorsCount);
+        for (uint32_t i = 0; i < descriptorsCount; ++i) {
+            bindings[i] = VkDescriptorSetLayoutBinding{i, VK_DESCRIPTOR_TYPE_MUTABLE_EXT, 1, VK_SHADER_STAGE_ALL, nullptr};
+            if (type == DescriptorHeapType::SRV_CBV_UAV) {
+                mutableDescriptorTypeLists[i] = VkMutableDescriptorTypeListEXT{RHINO_ARR_SIZE(ALLTypes), ALLTypes};
+            }
+        }
 
-        VkBufferCreateInfo heapCreateInfo{VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO};
-        heapCreateInfo.flags = 0;
-        heapCreateInfo.usage = VK_BUFFER_USAGE_RESOURCE_DESCRIPTOR_BUFFER_BIT_EXT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
-        heapCreateInfo.size = result->heapSize;
-        heapCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-        vkCreateBuffer(m_Device, &heapCreateInfo, m_Alloc, &result->heap);
+        VkMutableDescriptorTypeCreateInfoEXT mutableDescriptorTypeCreateInfoExt{VK_STRUCTURE_TYPE_MUTABLE_DESCRIPTOR_TYPE_CREATE_INFO_EXT};
+        mutableDescriptorTypeCreateInfoExt.mutableDescriptorTypeListCount = mutableDescriptorTypeLists.size();
+        mutableDescriptorTypeCreateInfoExt.pMutableDescriptorTypeLists = mutableDescriptorTypeLists.data();
 
-        // Create the memory backing up the buffer handle
-        VkMemoryRequirements memReqs;
-        vkGetBufferMemoryRequirements(m_Device, result->heap, &memReqs);
-        VkPhysicalDeviceMemoryProperties memoryProps;
-        vkGetPhysicalDeviceMemoryProperties(m_PhysicalDevice, &memoryProps);
+        VkDescriptorSetLayoutCreateInfo setLayoutCreateInfo{VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO};
+        setLayoutCreateInfo.pNext = type == DescriptorHeapType::SRV_CBV_UAV ? &mutableDescriptorTypeCreateInfoExt : nullptr;
+        setLayoutCreateInfo.bindingCount = descriptorsCount;
+        setLayoutCreateInfo.pBindings = bindings.data();
 
-        VkMemoryAllocateFlagsInfo allocateFlagsInfo{VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_FLAGS_INFO};
-        allocateFlagsInfo.flags = VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT;
+        VkDescriptorSetLayout setLayout = VK_NULL_HANDLE;
+        vkCreateDescriptorSetLayout(m_Device, &setLayoutCreateInfo, m_Alloc, &setLayout);
 
-        VkMemoryAllocateInfo alloc{VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO};
-        alloc.pNext = &allocateFlagsInfo;
-        alloc.allocationSize = memReqs.size;
-        alloc.memoryTypeIndex = SelectMemoryType(0xffffff, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
-        vkAllocateMemory(m_Device, &alloc, m_Alloc, &result->memory);
 
-        vkBindBufferMemory(m_Device, result->heap, result->memory, 0);
+        VkDescriptorSetAllocateInfo setAlloc{VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO};
+        setAlloc.descriptorPool = result->pool;
+        setAlloc.descriptorSetCount = 1;
+        setAlloc.pSetLayouts = &setLayout;
+        vkAllocateDescriptorSets(m_Device, &setAlloc, &result->heap);
 
-        VkBufferDeviceAddressInfo bufferInfo{VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO};
-        bufferInfo.buffer = result->heap;
-        result->heapGPUStartHandle = vkGetBufferDeviceAddress(m_Device, &bufferInfo);
-
-        vkMapMemory(m_Device, result->memory, 0, VK_WHOLE_SIZE, 0, &result->mapped);
+        vkDestroyDescriptorSetLayout(m_Device, setLayout, m_Alloc);
         return result;
     }
 
     void VulkanBackend::ReleaseDescriptorHeap(DescriptorHeap* heap) noexcept {
         if (!heap) return;
-        auto* vulkanDescriptorHeap = static_cast<VulkanDescriptorHeap*>(heap);
-        vkUnmapMemory(m_Device, vulkanDescriptorHeap->memory);
-        vkDestroyBuffer(m_Device, vulkanDescriptorHeap->heap, m_Alloc);
-        vkFreeMemory(m_Device, vulkanDescriptorHeap->memory, m_Alloc);
+        auto* vulkanHeap = static_cast<VulkanDescriptorHeap*>(heap);
+        vkDestroyDescriptorPool(m_Device, vulkanHeap->pool, m_Alloc);
         delete heap;
     }
 

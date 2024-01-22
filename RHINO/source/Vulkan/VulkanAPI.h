@@ -8,10 +8,8 @@
 #define RHINO_VKS(result) result
 #endif
 
-#define RHINO_VULKAN_API_FUNCS()               \
-    RHINO_APPLY(vkGetDescriptorEXT)            \
-    RHINO_APPLY(vkCmdBindDescriptorBuffersEXT) \
-    RHINO_APPLY(vkCmdSetDescriptorBufferOffsetsEXT)
+#define RHINO_VULKAN_API_FUNCS() \
+    RHINO_APPLY(vkCreateDevice)
 
 
 namespace RHINO::APIVulkan {
