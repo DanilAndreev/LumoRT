@@ -248,6 +248,10 @@ namespace RHINO::APIVulkan {
         layoutInfo.pSetLayouts = spaceLayouts.data();
         vkCreatePipelineLayout(m_Device, &layoutInfo, m_Alloc, &result->layout);
 
+        for (VkDescriptorSetLayout layout : spaceLayouts) {
+            vkDestroyDescriptorSetLayout(m_Device, layout, m_Alloc);
+        }
+
         VkShaderModuleCreateInfo shaderModuleInfo{VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO};
         shaderModuleInfo.codeSize = desc.CS.bytecodeSize;
         shaderModuleInfo.pCode = reinterpret_cast<const uint32_t*>(desc.CS.bytecode);

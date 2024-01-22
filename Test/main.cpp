@@ -111,8 +111,12 @@ int main() {
 
     // RDOCIntegration::EndCapture();
 
+    rhi->ReleaseComputePSO(pso);
     rhi->ReleaseDescriptorHeap(heap);
     rhi->ReleaseBuffer(bufCBV);
+    rhi->ReleaseBuffer(rbkUAV1);
+    rhi->ReleaseBuffer(rbkUAV2);
+    rhi->ReleaseBuffer(rbkUAV3);
     rhi->ReleaseBuffer(destUAV1);
     rhi->ReleaseBuffer(destUAV2);
     rhi->ReleaseBuffer(destUAV3);
