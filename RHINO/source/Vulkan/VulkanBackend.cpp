@@ -114,6 +114,8 @@ namespace RHINO::APIVulkan {
         spaceLayouts.resize(desc.spacesCount);
         for (size_t space = 0; space < desc.spacesCount; ++space) {
             const DescriptorSpaceDesc& spaceDesc = desc.spacesDescs[space];
+            result->heapOffsetsBySpaces[space] = std::make_pair(spaceDesc.rangeDescs[0].rangeType, spaceDesc.offsetInDescriptorsFromTableStart);
+
             std::vector<VkDescriptorSetLayoutBinding> bindings{};
             bindings.resize(topBindingPerSpace[space]);
 
@@ -173,7 +175,7 @@ namespace RHINO::APIVulkan {
 
             VkDescriptorSetLayoutCreateInfo setLayoutCreateInfo{VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO};
             setLayoutCreateInfo.pNext = isSamplerSpace ? nullptr : &mutableDescriptorTypeCreateInfoExt;
-            // setLayoutCreateInfo.flags = VK_DESCRIPTOR_SET_LAYOUT_CREATE_DESCRIPTOR_BUFFER_BIT_EXT;
+            setLayoutCreateInfo.flags = isSamplerSpace ? 0 : VK_DESCRIPTOR_SET_LAYOUT_CREATE_DESCRIPTOR_BUFFER_BIT_EXT;
             setLayoutCreateInfo.bindingCount = bindings.size();
             setLayoutCreateInfo.pBindings = bindings.data();
 

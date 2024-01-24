@@ -79,8 +79,8 @@ int main() {
     // RDOCIntegration::StartCapture();
 
     CommandList* cmd = rhi->AllocateCommandList("CMDList");
-    cmd->SetComputePSO(pso);
     cmd->SetHeap(heap, nullptr);
+    cmd->SetComputePSO(pso);
     cmd->Dispatch({1, 1, 1});
 
     rhi->SubmitCommandList(cmd);
