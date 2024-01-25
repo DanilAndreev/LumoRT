@@ -182,68 +182,6 @@ namespace RHINO::APIVulkan {
             vkCreateDescriptorSetLayout(m_Device, &setLayoutCreateInfo, m_Alloc, &spaceLayouts[space]);
         }
 
-        // std::vector<VkDescriptorSetLayoutBinding> bindings{};
-        // bindings.resize(desc.rangeDescCount);
-        // for (size_t i = 0; i < desc.rangeDescCount; ++i) {
-        //     const DescriptorRangeDesc& rangeDesc = desc.rangeDescs[i];
-        //
-        //     VkDescriptorSetLayoutBinding binding{};
-        //     binding.binding = rangeDesc.registerSlot;
-        //     binding.descriptorCount = rangeDesc.descriptorsCount;
-        //     binding.descriptorType = VK_DESCRIPTOR_TYPE_MUTABLE_EXT;
-        //     // binding.descriptorType = ToDescriptorType(rangeDesc.rangeType);
-        // }
-        //
-        //
-        // VkDescriptorSetLayoutCreateInfo setLayoutCreateInfo{VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO};
-        // // setLayoutCreateInfo.pNext = &mutableDescriptorTypeCreateInfoExt;
-        // setLayoutCreateInfo.flags = VK_DESCRIPTOR_SET_LAYOUT_CREATE_DESCRIPTOR_BUFFER_BIT_EXT;
-        // setLayoutCreateInfo.bindingCount = bindings.size();
-        // setLayoutCreateInfo.pBindings = bindings.data();
-        //
-        // VkDescriptorSetLayout setLayoutCBVSRVUAV = VK_NULL_HANDLE;
-        // vkCreateDescriptorSetLayout(m_Device, &setLayoutCreateInfo, m_Alloc, &setLayoutCBVSRVUAV);
-        //
-        // VkDescriptorSetLayoutBindingFlagsCreateInfo setLayoutBindingFlagsCreateInfo{VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO};
-        // setLayoutBindingFlagsCreateInfo.bindingCount = 1;
-        // VkDescriptorBindingFlags flags = VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT;
-        // setLayoutBindingFlagsCreateInfo.pBindingFlags = &flags;
-        //
-        // VkDescriptorType descriptorTypes[] = {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-        //                                       VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE};
-        // VkMutableDescriptorTypeListEXT mutableDescriptorTypeList{};
-        // mutableDescriptorTypeList.descriptorTypeCount = RHINO_ARR_SIZE(descriptorTypes);
-        // mutableDescriptorTypeList.pDescriptorTypes = descriptorTypes;
-        // VkMutableDescriptorTypeCreateInfoEXT mutableDescriptorTypeCreateInfoExt{VK_STRUCTURE_TYPE_MUTABLE_DESCRIPTOR_TYPE_CREATE_INFO_EXT};
-        // mutableDescriptorTypeCreateInfoExt.pNext = &setLayoutBindingFlagsCreateInfo;
-        // mutableDescriptorTypeCreateInfoExt.mutableDescriptorTypeListCount = 1;
-        // mutableDescriptorTypeCreateInfoExt.pMutableDescriptorTypeLists = &mutableDescriptorTypeList;
-        //
-        // VkDescriptorSetLayoutBinding bindingSRVUAVCBV{};
-        // bindingSRVUAVCBV.binding = 0;
-        // bindingSRVUAVCBV.descriptorCount = desc.visibleCBVSRVUAVDescriptorCount;
-        // bindingSRVUAVCBV.descriptorType = VK_DESCRIPTOR_TYPE_MUTABLE_EXT;
-        //
-        // VkDescriptorSetLayoutCreateInfo setLayoutCreateInfo{VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO};
-        // setLayoutCreateInfo.pNext = &mutableDescriptorTypeCreateInfoExt;
-        // setLayoutCreateInfo.flags = VK_DESCRIPTOR_SET_LAYOUT_CREATE_DESCRIPTOR_BUFFER_BIT_EXT;
-        // setLayoutCreateInfo.bindingCount = 1;
-        // setLayoutCreateInfo.pBindings = &bindingSRVUAVCBV;
-        //
-        // VkDescriptorSetLayout setLayoutCBVSRVUAV = VK_NULL_HANDLE;
-        // vkCreateDescriptorSetLayout(m_Device, &setLayoutCreateInfo, m_Alloc, &setLayoutCBVSRVUAV);
-        //
-        // VkDescriptorSetLayoutBinding bindingSampler{};
-        // bindingSRVUAVCBV.binding = 0;
-        // bindingSRVUAVCBV.descriptorCount = desc.visibleCBVSRVUAVDescriptorCount;
-        // bindingSRVUAVCBV.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;
-        //
-        // setLayoutCreateInfo.pNext = nullptr;
-        // setLayoutCreateInfo.pBindings = &bindingSampler;
-        // VkDescriptorSetLayout setLayoutSampler = VK_NULL_HANDLE;
-        // vkCreateDescriptorSetLayout(m_Device, &setLayoutCreateInfo, m_Alloc, &setLayoutSampler);
-        // VkDescriptorSetLayout setLayouts[] = {setLayoutCBVSRVUAV, setLayoutSampler};
-
         VkPipelineLayoutCreateInfo layoutInfo{VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO};
         layoutInfo.pushConstantRangeCount = 0;
         layoutInfo.setLayoutCount = spaceLayouts.size();
