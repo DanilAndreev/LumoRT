@@ -5,9 +5,9 @@
 namespace RHINO::APID3D12 {
     class D3D12DescriptorHeap : public DescriptorHeap {
     public:
-        void WriteSRV(const WriteBufferSRVDesc& desc) noexcept final;
-        void WriteUAV(const WriteBufferSRVDesc& desc) noexcept final;
-        void WriteCBV(const WriteBufferSRVDesc& desc) noexcept final;
+        void WriteSRV(const WriteBufferDescriptorDesc& desc) noexcept final;
+        void WriteUAV(const WriteBufferDescriptorDesc& desc) noexcept final;
+        void WriteCBV(const WriteBufferDescriptorDesc& desc) noexcept final;
         void WriteSRV(const WriteTexture2DSRVDesc& desc) noexcept final;
         void WriteUAV(const WriteTexture2DSRVDesc& desc) noexcept final;
         void WriteSRV(const WriteTexture3DSRVDesc& desc) noexcept final;

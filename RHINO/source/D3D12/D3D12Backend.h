@@ -22,12 +22,18 @@ namespace RHINO::APID3D12 {
     public:
         Buffer* CreateBuffer(size_t size, ResourceHeapType heapType, ResourceUsage usage, size_t structuredStride, const char* name) noexcept final;
         void ReleaseBuffer(Buffer* buffer) noexcept final;
+        void* MapMemory(Buffer* buffer, size_t offset, size_t size) noexcept final;
+        void UnmapMemory(Buffer* buffer) noexcept final;
+
         Texture2D* CreateTexture2D() noexcept final;
         void ReleaseTexture2D(Texture2D* texture) noexcept final;
         DescriptorHeap* CreateDescriptorHeap(DescriptorHeapType heapType, size_t descriptorsCount, const char* name) noexcept final;
         void ReleaseDescriptorHeap(DescriptorHeap* heap) noexcept final;
         CommandList* AllocateCommandList(const char* name) noexcept final;
         void ReleaseCommandList(CommandList* commandList) noexcept final;
+
+    public:
+        void SubmitCommandList(CommandList* cmd) noexcept final;
 
     private:
         void SetDebugName(ID3D12DeviceChild* resource, const std::string& name) noexcept;

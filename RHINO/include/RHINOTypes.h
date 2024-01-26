@@ -124,8 +124,10 @@ namespace RHINO {
         virtual void SetHeap(DescriptorHeap* CBVSRVUAVHeap, DescriptorHeap* SamplerHeap) noexcept = 0;
     };
 
-    struct WriteBufferSRVDesc {
+    struct WriteBufferDescriptorDesc {
         Buffer* buffer = nullptr;
+        size_t bufferStructuredStride = 0;
+        size_t size = 0;
         size_t bufferOffset = 0;
         size_t offsetInHeap = 0;
     };
@@ -145,9 +147,9 @@ namespace RHINO {
         virtual ~DescriptorHeap() noexcept = default;
 
     public:
-        virtual void WriteSRV(const WriteBufferSRVDesc& desc) noexcept = 0;
-        virtual void WriteUAV(const WriteBufferSRVDesc& desc) noexcept = 0;
-        virtual void WriteCBV(const WriteBufferSRVDesc& desc) noexcept = 0;
+        virtual void WriteSRV(const WriteBufferDescriptorDesc& desc) noexcept = 0;
+        virtual void WriteUAV(const WriteBufferDescriptorDesc& desc) noexcept = 0;
+        virtual void WriteCBV(const WriteBufferDescriptorDesc& desc) noexcept = 0;
 
         virtual void WriteSRV(const WriteTexture2DSRVDesc& desc) noexcept = 0;
         virtual void WriteUAV(const WriteTexture2DSRVDesc& desc) noexcept = 0;

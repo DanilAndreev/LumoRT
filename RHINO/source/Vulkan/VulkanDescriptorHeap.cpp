@@ -4,7 +4,7 @@
 #include "VulkanAPI.h"
 
 namespace RHINO::APIVulkan {
-    void VulkanDescriptorHeap::WriteSRV(const RHINO::WriteBufferSRVDesc& desc) noexcept {
+    void VulkanDescriptorHeap::WriteSRV(const RHINO::WriteBufferDescriptorDesc& desc) noexcept {
         auto* vulkanBuffer = static_cast<VulkanBuffer*>(desc.buffer);
 
         VkDescriptorAddressInfoEXT bufferInfo{VK_STRUCTURE_TYPE_DESCRIPTOR_ADDRESS_INFO_EXT};
@@ -17,7 +17,7 @@ namespace RHINO::APIVulkan {
         uint8_t* mem = static_cast<uint8_t*>(mapped);
         EXT::vkGetDescriptorEXT(device, &info, descriptorProps.storageBufferDescriptorSize, mem + desc.offsetInHeap * descriptorHandleIncrementSize);
     }
-    void VulkanDescriptorHeap::WriteUAV(const WriteBufferSRVDesc& desc) noexcept {
+    void VulkanDescriptorHeap::WriteUAV(const WriteBufferDescriptorDesc& desc) noexcept {
         auto* vulkanBuffer = static_cast<VulkanBuffer*>(desc.buffer);
 
         VkDescriptorAddressInfoEXT bufferInfo{VK_STRUCTURE_TYPE_DESCRIPTOR_ADDRESS_INFO_EXT};
@@ -30,7 +30,7 @@ namespace RHINO::APIVulkan {
         uint8_t* mem = static_cast<uint8_t*>(mapped);
         EXT::vkGetDescriptorEXT(device, &info, descriptorProps.storageBufferDescriptorSize, mem + desc.offsetInHeap * descriptorHandleIncrementSize);
     }
-    void VulkanDescriptorHeap::WriteCBV(const WriteBufferSRVDesc& desc) noexcept {
+    void VulkanDescriptorHeap::WriteCBV(const WriteBufferDescriptorDesc& desc) noexcept {
         auto* vulkanBuffer = static_cast<VulkanBuffer*>(desc.buffer);
 
         VkDescriptorAddressInfoEXT bufferInfo{VK_STRUCTURE_TYPE_DESCRIPTOR_ADDRESS_INFO_EXT};

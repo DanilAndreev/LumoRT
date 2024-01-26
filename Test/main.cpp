@@ -21,7 +21,7 @@ std::vector<uint8_t> ReadBinary(std::istream& stream) noexcept {
 int main() {
     using namespace RHINO;
 
-    RHINOInterface* rhi = CreateRHINO(BackendAPI::Vulkan);
+    RHINOInterface* rhi = CreateRHINO(BackendAPI::D3D12);
     rhi->Initialize();
     DescriptorHeap* heap = rhi->CreateDescriptorHeap(DescriptorHeapType::SRV_CBV_UAV, 10, "Heap");
 
@@ -34,7 +34,7 @@ int main() {
     Buffer* rbkUAV2 = rhi->CreateBuffer(sizeof(int) * 64, ResourceHeapType::Readback, ResourceUsage::CopyDest, 0, "DestUAV2");
     Buffer* rbkUAV3 = rhi->CreateBuffer(sizeof(int) * 64, ResourceHeapType::Readback, ResourceUsage::CopyDest, 0, "DestUAV3");
 
-    WriteBufferSRVDesc desc{};
+    WriteBufferDescriptorDesc desc{};
     desc.offsetInHeap = 0;
     desc.bufferOffset = 0;
     // desc.buffer = bufCBV;
@@ -42,20 +42,26 @@ int main() {
 
 
     desc.buffer = destUAV1;
+    desc.size = sizeof(int) * 64;
+    desc.bufferStructuredStride = sizeof(int);
     desc.offsetInHeap = 0;
     heap->WriteUAV(desc);
     desc.buffer = destUAV2;
+    desc.size = sizeof(int) * 64;
+    desc.bufferStructuredStride = sizeof(int);
     desc.offsetInHeap = 1;
     heap->WriteUAV(desc);
     desc.buffer = destUAV3;
+    desc.size = sizeof(int) * 64;
+    desc.bufferStructuredStride = sizeof(int);
     desc.offsetInHeap = 3;
     heap->WriteUAV(desc);
 
-    std::ifstream shaderFile{"layouts.compute.spirv", std::ios::binary | std::ios::ate};
+    std::ifstream shaderFile{"layouts.compute.dxil", std::ios::binary | std::ios::ate};
     assert(shaderFile.is_open());
     auto bytecode = ReadBinary(shaderFile);
     shaderFile.close();
-    assert(bytecode.size() % 4 == 0);
+    // assert(bytecode.size() % 4 == 0);
 
     const DescriptorRangeDesc space0rd[] = {
         DescriptorRangeDesc{DescriptorRangeType::UAV, 0, 2},

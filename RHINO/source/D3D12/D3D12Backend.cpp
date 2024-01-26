@@ -2,15 +2,21 @@
 
 #include "D3D12Backend.h"
 #include "D3D12BackendTypes.h"
-#include "D3D12DescriptorHeap.h"
 #include "D3D12CommandList.h"
+#include "D3D12DescriptorHeap.h"
 
-#pragma comment( lib, "dxguid.lib")
+#pragma comment(lib, "dxguid.lib")
 #include <dxgi.h>
 
 
-#define RHINO_VALIDATE_D3D_RESULT(expr) expr
+#ifdef _DEBUG
+#define RHINO_D3DS(expr) assert(expr == S_OK)
 #define RHINO_GPU_DEBUG(expr) expr
+#else
+#define RHINO_D3DS(expr) expr
+#define RHINO_GPU_DEBUG(expr)
+#endif
+
 
 namespace RHINO::APID3D12 {
     using namespace std::string_literals;
@@ -58,9 +64,16 @@ namespace RHINO::APID3D12 {
     void D3D12Backend::Initialize() noexcept {
         IDXGIFactory* factory = nullptr;
         CreateDXGIFactory(IID_PPV_ARGS(&factory));
-        factory->EnumAdapters();
 
-        RHINO_VALIDATE_D3D_RESULT(D3D12CreateDevice(adapter, D3D_FEATURE_LEVEL::D3D_FEATURE_LEVEL_12_2, IID_PPV_ARGS(&m_Device)));
+        IDXGIAdapter* adapter;
+        for (UINT i = 0; factory->EnumAdapters(i, &adapter) != DXGI_ERROR_NOT_FOUND; ++i) {
+            DXGI_ADAPTER_DESC adapterDesc;
+            adapter->GetDesc(&adapterDesc);
+            // adapterDesc.Description;
+            break;
+        }
+
+        RHINO_D3DS(D3D12CreateDevice(adapter, D3D_FEATURE_LEVEL::D3D_FEATURE_LEVEL_12_2, IID_PPV_ARGS(&m_Device)));
         factory->Release();
     }
 
@@ -77,7 +90,7 @@ namespace RHINO::APID3D12 {
 
     ComputePSO* D3D12Backend::CompileComputePSO(const ComputePSODesc& desc) noexcept {
         auto* result = new D3D12ComputePSO{};
-        result->rootSignature = CreateRootSignature(desc.spacesCount, desc.spaces);
+        result->rootSignature = CreateRootSignature(desc.spacesCount, desc.spacesDescs);
 
         D3D12_COMPUTE_PIPELINE_STATE_DESC psoDesc{};
         psoDesc.pRootSignature = result->rootSignature;
@@ -132,7 +145,7 @@ namespace RHINO::APID3D12 {
         resourceDesc.Width = RHINO_CEIL_TO_MULTIPLE_OF(size, 256);
         resourceDesc.Flags = ToD3D12ResourceFlags(usage);
 
-        RHINO_VALIDATE_D3D_RESULT(m_Device->CreateCommittedResource(&heapProperties, D3D12_HEAP_FLAG_NONE, &resourceDesc, result->currentState, nullptr, IID_PPV_ARGS(&result->buffer)));
+        RHINO_D3DS(m_Device->CreateCommittedResource(&heapProperties, D3D12_HEAP_FLAG_NONE, &resourceDesc, result->currentState, nullptr, IID_PPV_ARGS(&result->buffer)));
         result->desc = result->buffer->GetDesc();
 
         RHINO_GPU_DEBUG(SetDebugName(result->buffer, name));
@@ -144,6 +157,23 @@ namespace RHINO::APID3D12 {
         auto* d3d12Buffer = static_cast<D3D12Buffer*>(buffer);
         d3d12Buffer->buffer->Release();
         delete d3d12Buffer;
+    }
+
+    void* D3D12Backend::MapMemory(Buffer* buffer, size_t offset, size_t size) noexcept {
+        auto* d3d12Buffer = static_cast<D3D12Buffer*>(buffer);
+        void* result = nullptr;
+        D3D12_RANGE range{};
+        range.Begin = offset;
+        range.End = offset + size;
+        RHINO_D3DS(d3d12Buffer->buffer->Map(0, &range, &result));
+        return result;
+    }
+
+    void D3D12Backend::UnmapMemory(Buffer* buffer) noexcept {
+        auto* d3d12Buffer = static_cast<D3D12Buffer*>(buffer);
+        D3D12_RANGE range{};
+        // range = ; //TODO: finish.
+        d3d12Buffer->buffer->Unmap(0, &range);
     }
 
     Texture2D* D3D12Backend::CreateTexture2D() noexcept {
@@ -159,16 +189,17 @@ namespace RHINO::APID3D12 {
 
     DescriptorHeap* D3D12Backend::CreateDescriptorHeap(DescriptorHeapType heapType, size_t descriptorsCount, const char* name) noexcept {
         auto* result = new D3D12DescriptorHeap{};
+        result->device = m_Device;
 
         D3D12_DESCRIPTOR_HEAP_TYPE nativeHeapType = ToD3D12DescriptorHeapType(heapType);
         D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
         heapDesc.NumDescriptors = descriptorsCount;
         heapDesc.Type = nativeHeapType;
         heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-        RHINO_VALIDATE_D3D_RESULT(m_Device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&result->CPUDescriptorHeap)));
+        RHINO_D3DS(m_Device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&result->CPUDescriptorHeap)));
 
         heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-        RHINO_VALIDATE_D3D_RESULT(m_Device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&result->GPUDescriptorHeap)));
+        RHINO_D3DS(m_Device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&result->GPUDescriptorHeap)));
 
         result->descriptorHandleIncrementSize = m_Device->GetDescriptorHandleIncrementSize(nativeHeapType);
 
@@ -190,9 +221,9 @@ namespace RHINO::APID3D12 {
     CommandList* D3D12Backend::AllocateCommandList(const char* name) noexcept {
         auto* result = new D3D12CommandList{};
 
-        RHINO_VALIDATE_D3D_RESULT(m_Device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&result->allocator)));
-        RHINO_VALIDATE_D3D_RESULT(m_Device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, result->allocator, nullptr,
-                                                              IID_PPV_ARGS(&result->cmd)));
+        RHINO_D3DS(m_Device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&result->allocator)));
+        RHINO_D3DS(m_Device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, result->allocator, nullptr,
+                                               IID_PPV_ARGS(&result->cmd)));
         result->cmd->Close();
 
         SetDebugName(result->allocator, "CMDAllocator_"s + name);
@@ -207,6 +238,8 @@ namespace RHINO::APID3D12 {
         d3d12CommandList->allocator->Release();
         delete d3d12CommandList;
     }
+    void D3D12Backend::SubmitCommandList(CommandList* cmd) noexcept {
+    }
 
     void D3D12Backend::SetDebugName(ID3D12DeviceChild* resource, const std::string& name) noexcept {
         resource->SetPrivateData(WKPDID_D3DDebugObjectName, name.length(), name.c_str());
@@ -214,27 +247,30 @@ namespace RHINO::APID3D12 {
 
     ID3D12RootSignature* D3D12Backend::CreateRootSignature(size_t spacesCount, const DescriptorSpaceDesc* spaces) noexcept {
         std::vector<D3D12_DESCRIPTOR_RANGE> rangeDescs{};
-        rangeDescs.reserve(spacesCount);
-        for (size_t i = 0; i < spacesCount; ++i) {
-            D3D12_DESCRIPTOR_RANGE rangeDesc{};
-            rangeDesc.NumDescriptors = spaces[i].bindingsCount;
-            rangeDesc.RegisterSpace = spaces[i].space;
-            rangeDesc.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
-            switch (spaces[i].spaceType) {
-                case DescriptorSpaceType::SRV:
-                    rangeDesc.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE::D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-                    break;
-                case DescriptorSpaceType::UAV:
-                    rangeDesc.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE::D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
-                    break;
-                case DescriptorSpaceType::CBV:
-                    rangeDesc.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE::D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
-                    break;
-                case DescriptorSpaceType::Sampler:
-                    rangeDesc.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE::D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER;
-                    break;
+
+        for (size_t spaceIdx = 0; spaceIdx < spacesCount; ++spaceIdx) {
+            for (size_t i = 0; i < spaces[spaceIdx].rangeDescCount; ++i) {
+                D3D12_DESCRIPTOR_RANGE rangeDesc{};
+                rangeDesc.NumDescriptors = spaces[spaceIdx].rangeDescs[i].descriptorsCount;
+                rangeDesc.RegisterSpace = spaces[spaceIdx].space;
+                rangeDesc.OffsetInDescriptorsFromTableStart = spaces[spaceIdx].offsetInDescriptorsFromTableStart + spaces[spaceIdx].rangeDescs[i].baseRegisterSlot;
+                rangeDesc.BaseShaderRegister = spaces[spaceIdx].rangeDescs[i].baseRegisterSlot;
+                switch (spaces[spaceIdx].rangeDescs[i].rangeType) {
+                    case DescriptorRangeType::SRV:
+                        rangeDesc.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE::D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+                        break;
+                    case DescriptorRangeType::UAV:
+                        rangeDesc.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE::D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
+                        break;
+                    case DescriptorRangeType::CBV:
+                        rangeDesc.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE::D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
+                        break;
+                    case DescriptorRangeType::Sampler:
+                        rangeDesc.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE::D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER;
+                        break;
+                }
+                rangeDescs.push_back(rangeDesc);
             }
-            rangeDescs.push_back(rangeDesc);
         }
 
         D3D12_ROOT_PARAMETER rootParamDesc{};
@@ -253,12 +289,12 @@ namespace RHINO::APID3D12 {
                                   D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS | D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
 
         ID3DBlob* serializedRootSig = nullptr;
-        RHINO_VALIDATE_D3D_RESULT(D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1_0, &serializedRootSig, nullptr));
+        RHINO_D3DS(D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1_0, &serializedRootSig, nullptr));
 
         ID3D12RootSignature* result = nullptr;
-        RHINO_VALIDATE_D3D_RESULT(m_Device->CreateRootSignature(0, serializedRootSig->GetBufferPointer(), serializedRootSig->GetBufferSize(), IID_PPV_ARGS(&result)));
+        RHINO_D3DS(m_Device->CreateRootSignature(0, serializedRootSig->GetBufferPointer(), serializedRootSig->GetBufferSize(), IID_PPV_ARGS(&result)));
         return result;
     }
 }// namespace RHINO::APID3D12
 
-#endif // ENABLE_API_D3D12
+#endif// ENABLE_API_D3D12

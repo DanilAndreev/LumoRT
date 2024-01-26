@@ -4,41 +4,45 @@
 #include "D3D12BackendTypes.h"
 
 namespace RHINO::APID3D12 {
-    void D3D12DescriptorHeap::WriteSRV(const WriteBufferSRVDesc& desc) noexcept {
+    void D3D12DescriptorHeap::WriteSRV(const WriteBufferDescriptorDesc& desc) noexcept {
+        //TODO: check that desc.size %  desc.bufferStructuredStride = 0 and desc.bufferOffset %  desc.bufferStructuredStride
         auto* d3d12Buffer = static_cast<D3D12Buffer*>(desc.buffer);
 
         D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
         srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
         srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
         srvDesc.Format = DXGI_FORMAT_UNKNOWN;
-        srvDesc.Buffer.NumElements = 0;
-        srvDesc.Buffer.StructureByteStride = 0;
+        srvDesc.Buffer.FirstElement = desc.bufferOffset / desc.bufferStructuredStride;
+        srvDesc.Buffer.NumElements = (desc.size / desc.bufferStructuredStride) - srvDesc.Buffer.FirstElement;
+        srvDesc.Buffer.StructureByteStride = desc.bufferStructuredStride;
 
         D3D12_CPU_DESCRIPTOR_HANDLE CPUHeapCPUHandle = GetCPUHeapCPUHandle(desc.offsetInHeap);
         D3D12_CPU_DESCRIPTOR_HANDLE GPUHeapCPUHandle = GetGPUHeapCPUHandle(desc.offsetInHeap);
         device->CreateShaderResourceView(d3d12Buffer->buffer, &srvDesc, CPUHeapCPUHandle);
         device->CopyDescriptorsSimple(1, GPUHeapCPUHandle, CPUHeapCPUHandle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
     }
-    void D3D12DescriptorHeap::WriteUAV(const WriteBufferSRVDesc& desc) noexcept {
+    void D3D12DescriptorHeap::WriteUAV(const WriteBufferDescriptorDesc& desc) noexcept {
         auto* d3d12Buffer = static_cast<D3D12Buffer*>(desc.buffer);
 
         D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc{};
         uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
         uavDesc.Format = DXGI_FORMAT_UNKNOWN;
-        uavDesc.Buffer.NumElements = 0;
-        uavDesc.Buffer.StructureByteStride = 0;
+        uavDesc.Buffer.FirstElement = desc.bufferOffset / desc.bufferStructuredStride;
+        uavDesc.Buffer.NumElements = (desc.size / desc.bufferStructuredStride) - uavDesc.Buffer.FirstElement;
+        uavDesc.Buffer.StructureByteStride = desc.bufferStructuredStride;
+        uavDesc.Buffer.CounterOffsetInBytes = 0;
 
         D3D12_CPU_DESCRIPTOR_HANDLE CPUHeapCPUHandle = GetCPUHeapCPUHandle(desc.offsetInHeap);
         D3D12_CPU_DESCRIPTOR_HANDLE GPUHeapCPUHandle = GetGPUHeapCPUHandle(desc.offsetInHeap);
         device->CreateUnorderedAccessView(d3d12Buffer->buffer, nullptr, &uavDesc, CPUHeapCPUHandle);
         device->CopyDescriptorsSimple(1, GPUHeapCPUHandle, CPUHeapCPUHandle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
     }
-    void D3D12DescriptorHeap::WriteCBV(const WriteBufferSRVDesc& desc) noexcept {
+    void D3D12DescriptorHeap::WriteCBV(const WriteBufferDescriptorDesc& desc) noexcept {
         auto* d3d12Buffer = static_cast<D3D12Buffer*>(desc.buffer);
 
         D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc{};
-        cbvDesc.SizeInBytes = d3d12Buffer->desc.Width;
-        cbvDesc.BufferLocation = d3d12Buffer->buffer->GetGPUVirtualAddress();
+        cbvDesc.SizeInBytes = desc.size;
+        cbvDesc.BufferLocation = d3d12Buffer->buffer->GetGPUVirtualAddress() + desc.bufferOffset;
 
         D3D12_CPU_DESCRIPTOR_HANDLE CPUHeapCPUHandle = GetCPUHeapCPUHandle(desc.offsetInHeap);
         D3D12_CPU_DESCRIPTOR_HANDLE GPUHeapCPUHandle = GetGPUHeapCPUHandle(desc.offsetInHeap);

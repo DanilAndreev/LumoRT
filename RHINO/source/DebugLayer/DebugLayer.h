@@ -24,7 +24,7 @@ namespace RHINO::DebugLayer {
         void ReleaseCommandList(CommandList* commandList) noexcept final;
         void SubmitCommandList(CommandList* cmd) noexcept final;
     private:
-        void DB(const std::string& text) const noexcept;
+        static void DB(const std::string& text) noexcept;
 
         // Enum to String
         static const char* EtoS(ResourceUsage usage) noexcept;

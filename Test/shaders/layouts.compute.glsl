@@ -13,7 +13,7 @@ layout(std430, set = 0, binding = 3) buffer DestUAV3 {
 
 void main(void) {
     uvec3 DTid = gl_GlobalInvocationID;
-    destUAV1.a[gl_GlobalInvocationID.x] = int(gl_GlobalInvocationID.x);
-    destUAV2.a[gl_GlobalInvocationID.x] = 1000 - int(gl_GlobalInvocationID.x);
-    destUAV3.a[gl_GlobalInvocationID.x] = -int(gl_GlobalInvocationID.x);
+    destUAV1.a[DTid.x] = int(DTid.x);
+    destUAV2.a[DTid.x] = 1000 - int(DTid.x);
+    destUAV3.a[DTid.x] = -int(DTid.x);
 }
