@@ -30,7 +30,7 @@ namespace RHINO::APID3D12 {
     void D3D12CommandList::SetHeap(DescriptorHeap* CBVSRVUAVHeap, DescriptorHeap* samplerHeap) noexcept {
         auto* d3d12CBVSRVUAVHeap = static_cast<D3D12DescriptorHeap*>(CBVSRVUAVHeap);
         auto* d3d12SamplerHeap = static_cast<D3D12DescriptorHeap*>(samplerHeap);
-        if (samplerHeap) {
+        if (!samplerHeap) {
             cmd->SetDescriptorHeaps(1, &d3d12CBVSRVUAVHeap->GPUDescriptorHeap);
         } else {
             ID3D12DescriptorHeap* heaps[] = {d3d12CBVSRVUAVHeap->GPUDescriptorHeap, d3d12SamplerHeap->GPUDescriptorHeap};

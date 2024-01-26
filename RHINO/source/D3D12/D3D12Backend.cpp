@@ -75,6 +75,18 @@ namespace RHINO::APID3D12 {
 
         RHINO_D3DS(D3D12CreateDevice(adapter, D3D_FEATURE_LEVEL::D3D_FEATURE_LEVEL_12_2, IID_PPV_ARGS(&m_Device)));
         factory->Release();
+
+        D3D12_COMMAND_QUEUE_DESC queueDesc{};
+        queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
+        m_Device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&m_DefaultQueue));
+        queueDesc.Type = D3D12_COMMAND_LIST_TYPE_COMPUTE;
+        m_Device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&m_ComputeQueue));
+        queueDesc.Type = D3D12_COMMAND_LIST_TYPE_COPY;
+        m_Device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&m_CopyQueue));
+
+        m_Device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_DefaultQueueFence));
+        m_Device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_ComputeQueueFence));
+        m_Device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_CopyQueueFence));
     }
 
     void D3D12Backend::Release() noexcept {
@@ -224,7 +236,7 @@ namespace RHINO::APID3D12 {
         RHINO_D3DS(m_Device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&result->allocator)));
         RHINO_D3DS(m_Device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, result->allocator, nullptr,
                                                IID_PPV_ARGS(&result->cmd)));
-        result->cmd->Close();
+        // result->cmd->Close();
 
         SetDebugName(result->allocator, "CMDAllocator_"s + name);
         SetDebugName(result->cmd, "CMD_"s + name);
@@ -239,6 +251,15 @@ namespace RHINO::APID3D12 {
         delete d3d12CommandList;
     }
     void D3D12Backend::SubmitCommandList(CommandList* cmd) noexcept {
+        auto d3d12CMD = static_cast<D3D12CommandList*>(cmd);
+        d3d12CMD->cmd->Close();
+        ID3D12CommandList* list = d3d12CMD->cmd;
+        m_DefaultQueue->ExecuteCommandLists(1, &list);
+        m_DefaultQueue->Signal(m_DefaultQueueFence, ++m_CopyQueueFenceLastVal);
+
+        HANDLE event = CreateEventA(nullptr, true, false, "DefaultQueueCompletion");
+        m_DefaultQueueFence->SetEventOnCompletion(m_CopyQueueFenceLastVal, event);
+        WaitForSingleObject(event, INFINITE);
     }
 
     void D3D12Backend::SetDebugName(ID3D12DeviceChild* resource, const std::string& name) noexcept {
