@@ -278,16 +278,16 @@ namespace RHINO::APID3D12 {
                 rangeDesc.BaseShaderRegister = spaces[spaceIdx].rangeDescs[i].baseRegisterSlot;
                 switch (spaces[spaceIdx].rangeDescs[i].rangeType) {
                     case DescriptorRangeType::SRV:
-                        rangeDesc.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE::D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+                        rangeDesc.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
                         break;
                     case DescriptorRangeType::UAV:
-                        rangeDesc.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE::D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
+                        rangeDesc.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
                         break;
                     case DescriptorRangeType::CBV:
-                        rangeDesc.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE::D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
+                        rangeDesc.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
                         break;
                     case DescriptorRangeType::Sampler:
-                        rangeDesc.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE::D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER;
+                        rangeDesc.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER;
                         break;
                 }
                 rangeDescs.push_back(rangeDesc);

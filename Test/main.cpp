@@ -51,7 +51,7 @@ int main() {
     desc.buffer = destUAV2;
     desc.size = sizeof(int) * 64;
     desc.bufferStructuredStride = sizeof(int);
-    desc.offsetInHeap = 1;
+    desc.offsetInHeap = 5;
     heap->WriteUAV(desc);
     desc.buffer = destUAV3;
     desc.size = sizeof(int) * 64;
@@ -66,12 +66,17 @@ int main() {
     // assert(bytecode.size() % 4 == 0);
 
     const DescriptorRangeDesc space0rd[] = {
-        DescriptorRangeDesc{DescriptorRangeType::UAV, 0, 2},
+        DescriptorRangeDesc{DescriptorRangeType::UAV, 0, 1},
         DescriptorRangeDesc{DescriptorRangeType::UAV, 3, 1},
+    };
+
+    const DescriptorRangeDesc space1rd[] = {
+        DescriptorRangeDesc{DescriptorRangeType::UAV, 1, 1},
     };
 
     const DescriptorSpaceDesc spaces[] = {
         DescriptorSpaceDesc{0, 0, RHINO_ARR_SIZE(space0rd), space0rd},
+        DescriptorSpaceDesc{1, 4, RHINO_ARR_SIZE(space1rd), space1rd},
     };
 
 
