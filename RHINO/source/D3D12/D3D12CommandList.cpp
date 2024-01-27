@@ -32,9 +32,12 @@ namespace RHINO::APID3D12 {
         auto* d3d12SamplerHeap = static_cast<D3D12DescriptorHeap*>(samplerHeap);
         if (!samplerHeap) {
             cmd->SetDescriptorHeaps(1, &d3d12CBVSRVUAVHeap->GPUDescriptorHeap);
+            cmd->SetComputeRootDescriptorTable(0, d3d12CBVSRVUAVHeap->GPUHeapGPUStartHandle);
         } else {
             ID3D12DescriptorHeap* heaps[] = {d3d12CBVSRVUAVHeap->GPUDescriptorHeap, d3d12SamplerHeap->GPUDescriptorHeap};
             cmd->SetDescriptorHeaps(2, heaps);
+            cmd->SetComputeRootDescriptorTable(0, d3d12CBVSRVUAVHeap->GPUHeapGPUStartHandle);
+            cmd->SetComputeRootDescriptorTable(1, d3d12SamplerHeap->GPUHeapGPUStartHandle);
         }
     }
 }// namespace RHINO::APID3D12

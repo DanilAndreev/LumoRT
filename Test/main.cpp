@@ -20,6 +20,8 @@ std::vector<uint8_t> ReadBinary(std::istream& stream) noexcept {
 
 int main() {
     using namespace RHINO;
+    RDOCIntegration::StartCapture();
+
 
     RHINOInterface* rhi = CreateRHINO(BackendAPI::D3D12);
     rhi->Initialize();
@@ -85,8 +87,8 @@ int main() {
     // RDOCIntegration::StartCapture();
 
     CommandList* cmd = rhi->AllocateCommandList("CMDList");
-    cmd->SetHeap(heap, nullptr);
     cmd->SetComputePSO(pso);
+    cmd->SetHeap(heap, nullptr);
     cmd->Dispatch({1, 1, 1});
 
     rhi->SubmitCommandList(cmd);
@@ -115,7 +117,7 @@ int main() {
     memcpy(vdata2.data(), data2, sizeof(int) * 64);
     memcpy(vdata3.data(), data3, sizeof(int) * 64);
 
-    // RDOCIntegration::EndCapture();
+    RDOCIntegration::EndCapture();
 
     rhi->ReleaseComputePSO(pso);
     rhi->ReleaseDescriptorHeap(heap);

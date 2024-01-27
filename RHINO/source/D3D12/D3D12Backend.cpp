@@ -294,6 +294,7 @@ namespace RHINO::APID3D12 {
             }
         }
 
+        //TODO: bind samplers as saparate table.
         D3D12_ROOT_PARAMETER rootParamDesc{};
 
         // Descriptor table
