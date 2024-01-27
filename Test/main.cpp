@@ -51,12 +51,12 @@ int main() {
     desc.buffer = destUAV2;
     desc.size = sizeof(int) * 64;
     desc.bufferStructuredStride = sizeof(int);
-    desc.offsetInHeap = 5;
+    desc.offsetInHeap = 1;
     heap->WriteUAV(desc);
     desc.buffer = destUAV3;
     desc.size = sizeof(int) * 64;
     desc.bufferStructuredStride = sizeof(int);
-    desc.offsetInHeap = 3;
+    desc.offsetInHeap = 5;
     heap->WriteUAV(desc);
 
     std::ifstream shaderFile{"layouts.compute.dxil", std::ios::binary | std::ios::ate};
@@ -66,8 +66,7 @@ int main() {
     // assert(bytecode.size() % 4 == 0);
 
     const DescriptorRangeDesc space0rd[] = {
-        DescriptorRangeDesc{DescriptorRangeType::UAV, 0, 1},
-        DescriptorRangeDesc{DescriptorRangeType::UAV, 3, 1},
+        DescriptorRangeDesc{DescriptorRangeType::UAV, 0, 2},
     };
 
     const DescriptorRangeDesc space1rd[] = {
