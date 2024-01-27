@@ -1,6 +1,6 @@
+#include "FrameDebuggerIntegration.h"
 #include "RHINO.h"
 #include "Utils/Common.h"
-#include "RDOCIntegration.h"
 
 #include <cassert>
 #include <fstream>
@@ -20,6 +20,7 @@ std::vector<uint8_t> ReadBinary(std::istream& stream) noexcept {
 
 int main() {
     using namespace RHINO;
+    // system("pause");
     RDOCIntegration::StartCapture();
 
 

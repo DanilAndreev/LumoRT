@@ -7,7 +7,7 @@ layout(std430, set = 0, binding = 0) buffer DestUAV1 {
 layout(std430, set = 0, binding = 1) buffer DestUAV2 {
     int a[];
 } destUAV2;
-layout(std430, set = 0, binding = 3) buffer DestUAV3 {
+layout(std430, set = 1, binding = 1) buffer DestUAV3 {
     int a[];
 } destUAV3;
 

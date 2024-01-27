@@ -10,6 +10,8 @@ public:
     static void EndCapture();
 
 private:
-    static void LoadAPI();
-    static RENDERDOC_API_1_4_2* m_RDCAPI;
+    static void LoadRDOCAPI();
+    static void LoadNGFX();
+    static RENDERDOC_API_1_4_2* ms_RDCAPI;
+    static bool ms_NGFXLoaded;
 };
