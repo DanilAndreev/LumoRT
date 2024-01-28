@@ -1,0 +1,3 @@
+[submodule "RHINO"]
+	path = RHINO
+	url = git@github.com:DanilAndreev/RHINO.git

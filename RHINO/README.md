@@ -1,1 +1,0 @@
-# Render Hardrware Interface (RHINO)
