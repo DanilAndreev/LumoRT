@@ -19,7 +19,13 @@ namespace RHINO {
     class CommandList;
 
     enum class TextureFormat {
+        R32G32B32A32_FLOAT,
+        R32G32B32A32_UINT,
+        R32G32B32A32_SINT,
 
+        R32_FLOAT,
+        R32_UINT,
+        R32_SINT,
     };
 
     enum class ResourceHeapType {
@@ -73,6 +79,12 @@ namespace RHINO {
         Texture2D,
         Texture3D,
         Count,
+    };
+
+    struct Dim3D {
+        size_t width;
+        size_t height;
+        size_t depth;
     };
 
     struct DescriptorRangeDesc {

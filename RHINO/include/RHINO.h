@@ -15,6 +15,7 @@ namespace RHINO {
         RHINOInterface(const RHINOInterface&) = delete;
         RHINOInterface(const RHINOInterface&&) = delete;
         virtual ~RHINOInterface() noexcept = default;
+
     public:
         virtual void Initialize() noexcept = 0;
         virtual void Release() noexcept = 0;
@@ -33,7 +34,8 @@ namespace RHINO {
         virtual void* MapMemory(Buffer* buffer, size_t offset, size_t size) noexcept = 0;
         virtual void UnmapMemory(Buffer* buffer) noexcept = 0;
 
-        virtual Texture2D* CreateTexture2D() noexcept = 0;
+        virtual Texture2D* CreateTexture2D(const Dim3D& dimensions, size_t mips, TextureFormat format,
+                                           ResourceUsage usage, const char* name) noexcept = 0;
         virtual void ReleaseTexture2D(Texture2D* texture) noexcept = 0;
 
         virtual DescriptorHeap* CreateDescriptorHeap(DescriptorHeapType type, size_t descriptorsCount, const char* name) noexcept = 0;

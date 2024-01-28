@@ -25,7 +25,8 @@ namespace RHINO::APID3D12 {
         void* MapMemory(Buffer* buffer, size_t offset, size_t size) noexcept final;
         void UnmapMemory(Buffer* buffer) noexcept final;
 
-        Texture2D* CreateTexture2D() noexcept final;
+        Texture2D* CreateTexture2D(const Dim3D& dimensions, size_t mips, TextureFormat format,
+                                   ResourceUsage usage, const char* name) noexcept final;
         void ReleaseTexture2D(Texture2D* texture) noexcept final;
         DescriptorHeap* CreateDescriptorHeap(DescriptorHeapType heapType, size_t descriptorsCount, const char* name) noexcept final;
         void ReleaseDescriptorHeap(DescriptorHeap* heap) noexcept final;

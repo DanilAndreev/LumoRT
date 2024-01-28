@@ -1,7 +1,6 @@
 #ifdef ENABLE_API_D3D12
 
 #include "D3D12Backend.h"
-#include "D3D12BackendTypes.h"
 #include "D3D12CommandList.h"
 #include "D3D12DescriptorHeap.h"
 
@@ -55,6 +54,23 @@ namespace RHINO::APID3D12 {
             default:
                 assert(0);
                 return D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+        }
+    }
+
+    static DXGI_FORMAT ToDXGIFormat(TextureFormat format) noexcept {
+        switch (format) {
+            case TextureFormat::R32G32B32A32_FLOAT:
+                return DXGI_FORMAT_R32G32B32A32_FLOAT;
+            case TextureFormat::R32G32B32A32_UINT:
+                return DXGI_FORMAT_R32G32B32A32_UINT;
+            case TextureFormat::R32G32B32A32_SINT:
+                return DXGI_FORMAT_R32G32B32A32_SINT;
+            case TextureFormat::R32_FLOAT:
+                return DXGI_FORMAT_R32_FLOAT;
+            case TextureFormat::R32_UINT:
+                return DXGI_FORMAT_R32_UINT;
+            case TextureFormat::R32_SINT:
+                return DXGI_FORMAT_R32_SINT;
         }
     }
 
@@ -188,45 +204,34 @@ namespace RHINO::APID3D12 {
         d3d12Buffer->buffer->Unmap(0, &range);
     }
 
-    Texture2D* D3D12Backend::CreateTexture2D() noexcept {
+    Texture2D* D3D12Backend::CreateTexture2D(const Dim3D& dimensions, size_t mips, TextureFormat format,
+                                             ResourceUsage usage, const char* name) noexcept {
         auto result = new D3D12Texture2D{};
 
-        // switch (heapType) {
-        //     case ResourceHeapType::Upload:
-        //         result->currentState = D3D12_RESOURCE_STATE_GENERIC_READ;
-        //     break;
-        //     case ResourceHeapType::Readback:
-        //         result->currentState = D3D12_RESOURCE_STATE_COPY_DEST;
-        //     break;
-        //     default:
-        //         result->currentState = D3D12_RESOURCE_STATE_COMMON;
-        // }
-        //
-        // D3D12_HEAP_PROPERTIES heapProperties{};
-        // heapProperties.Type = ToD3D12HeapType(heapType);
-        // heapProperties.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
-        // heapProperties.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
-        //
-        // D3D12_RESOURCE_DESC resourceDesc{};
-        // resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-        // resourceDesc.Alignment = 0;
-        // resourceDesc.Height = 1;
-        // resourceDesc.DepthOrArraySize = 1;
-        // resourceDesc.MipLevels = 1;
-        // resourceDesc.Format = DXGI_FORMAT_UNKNOWN;
-        // resourceDesc.SampleDesc.Count = 1;
-        // resourceDesc.SampleDesc.Quality = 0;
-        // resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-        //
-        // resourceDesc.Width = RHINO_CEIL_TO_MULTIPLE_OF(size, 256);
-        // resourceDesc.Flags = ToD3D12ResourceFlags(usage);
-        //
-        // RHINO_D3DS(m_Device->CreateCommittedResource(&heapProperties, D3D12_HEAP_FLAG_NONE, &resourceDesc, result->currentState, nullptr, IID_PPV_ARGS(&result->buffer)));
-        // result->desc = result->buffer->GetDesc();
+        D3D12_HEAP_PROPERTIES heapProperties{};
+        heapProperties.Type = D3D12_HEAP_TYPE_DEFAULT;
+        heapProperties.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+        heapProperties.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
 
-        // RHINO_GPU_DEBUG(SetDebugName(result->buffer, name));
+        D3D12_RESOURCE_DESC resourceDesc{};
+        resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+        resourceDesc.Alignment = 0;
+        resourceDesc.DepthOrArraySize = 1;
+        resourceDesc.MipLevels = mips;
+        resourceDesc.Format = ToDXGIFormat(format);
+        resourceDesc.SampleDesc.Count = 1;
+        resourceDesc.SampleDesc.Quality = 0;
+        resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
 
+        resourceDesc.Width = dimensions.width;
+        resourceDesc.Height = dimensions.height;
 
+        resourceDesc.Flags = ToD3D12ResourceFlags(usage);
+
+        RHINO_D3DS(m_Device->CreateCommittedResource(&heapProperties, D3D12_HEAP_FLAG_NONE, &resourceDesc, D3D12_RESOURCE_STATE_COMMON, nullptr, IID_PPV_ARGS(&result->texture)));
+        result->desc = result->texture->GetDesc();
+
+        RHINO_GPU_DEBUG(SetDebugName(result->texture, name));
         return result;
     }
 

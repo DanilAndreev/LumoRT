@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.25)
-project(LumoRT)
+project(RHINO)
 
 set(CMAKE_CXX_STANDARD 20)
 
@@ -51,6 +51,7 @@ set(SourceFiles
         source/D3D12/D3D12CommandList.h
         source/DebugLayer/DebugLayer.cpp
         source/DebugLayer/DebugLayer.h
+        ../SCAR/main.cpp
 )
 
 if(APPLE)
