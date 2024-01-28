@@ -9,6 +9,9 @@ add_executable(Test
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../RHINO RHINO)
 target_link_libraries(Test PUBLIC RHINO)
 
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../SCAR SCAR)
+target_link_libraries(Test PUBLIC SCAR)
+
 if(APPLE)
 else()
     target_link_libraries(Test PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/WinPixEventRuntime/bin/x64/WinPixEventRuntime.lib)
