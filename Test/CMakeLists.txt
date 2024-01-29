@@ -8,7 +8,7 @@ add_executable(Test
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../RHINO RHINO)
 target_link_libraries(Test PUBLIC RHINO)
-target_link_libraries(Test PUBLIC SCAR)
+target_link_libraries(Test PUBLIC SCARs)
 
 if(APPLE)
 else()
