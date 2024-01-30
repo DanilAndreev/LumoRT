@@ -60,34 +60,36 @@ int main() {
     desc.offsetInHeap = 5;
     heap->WriteUAV(desc);
 
-    std::ifstream shaderFile{"layouts.compute.dxil", std::ios::binary | std::ios::ate};
+    std::ifstream shaderFile{"out.scar", std::ios::binary | std::ios::ate};
     assert(shaderFile.is_open());
     auto bytecode = ReadBinary(shaderFile);
     shaderFile.close();
     // assert(bytecode.size() % 4 == 0);
 
-    const DescriptorRangeDesc space0rd[] = {
-        DescriptorRangeDesc{DescriptorRangeType::UAV, 0, 2},
-    };
+    // const DescriptorRangeDesc space0rd[] = {
+    //     DescriptorRangeDesc{DescriptorRangeType::UAV, 0, 2},
+    // };
+    //
+    // const DescriptorRangeDesc space1rd[] = {
+    //     DescriptorRangeDesc{DescriptorRangeType::UAV, 1, 1},
+    // };
+    //
+    // const DescriptorSpaceDesc spaces[] = {
+    //     DescriptorSpaceDesc{0, 0, RHINO_ARR_SIZE(space0rd), space0rd},
+    //     DescriptorSpaceDesc{1, 4, RHINO_ARR_SIZE(space1rd), space1rd},
+    // };
+    //
+    //
+    // ComputePSODesc psoDesc{};
+    // psoDesc.CS.entrypoint = "main";
+    // psoDesc.CS.bytecodeSize = bytecode.size();
+    // psoDesc.CS.bytecode = bytecode.data();
+    // psoDesc.debugName = "TestCPSO";
+    // psoDesc.spacesCount = RHINO_ARR_SIZE(spaces);
+    // psoDesc.spacesDescs = spaces;
+    // ComputePSO* pso = rhi->CompileComputePSO(psoDesc);
 
-    const DescriptorRangeDesc space1rd[] = {
-        DescriptorRangeDesc{DescriptorRangeType::UAV, 1, 1},
-    };
-
-    const DescriptorSpaceDesc spaces[] = {
-        DescriptorSpaceDesc{0, 0, RHINO_ARR_SIZE(space0rd), space0rd},
-        DescriptorSpaceDesc{1, 4, RHINO_ARR_SIZE(space1rd), space1rd},
-    };
-
-
-    ComputePSODesc psoDesc{};
-    psoDesc.CS.entrypoint = "main";
-    psoDesc.CS.bytecodeSize = bytecode.size();
-    psoDesc.CS.bytecode = bytecode.data();
-    psoDesc.debugName = "TestCPSO";
-    psoDesc.spacesCount = RHINO_ARR_SIZE(spaces);
-    psoDesc.spacesDescs = spaces;
-    ComputePSO* pso = rhi->CompileComputePSO(psoDesc);
+    ComputePSO* pso = rhi->CompileSCARComputePSO(bytecode.data(), bytecode.size(), "TestCPSO");
 
     // RDOCIntegration::StartCapture();
 
