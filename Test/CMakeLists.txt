@@ -4,9 +4,9 @@ project(Test)
 set(Files
         FrameDebuggerIntegration.cpp
         FrameDebuggerIntegration.h
-        mainLogic.cpp
-        mainLogic.h
-        )
+        Application.cpp
+        Application.h
+)
 
 add_executable(Test WIN32 WinMain.cpp ${Files})
 

@@ -1,7 +1,7 @@
 #include <Windows.h>
 #include <windowsx.h>
 
-#include "mainLogic.h"
+#include "Application.h"
 
 extern HWND g_RHINO_HWND;
 extern HINSTANCE g_RHINO_HInstance;
@@ -17,16 +17,12 @@ int APIENTRY WinMain(HINSTANCE hInstance,
     UNREFERENCED_PARAMETER(lpCmdLine);
     UNREFERENCED_PARAMETER(nCmdShow);
 
-    int screenWidth = GetSystemMetrics(SM_CXSCREEN);
-    int screenHeight = GetSystemMetrics(SM_CYSCREEN);
-
-
     LPCTSTR lpzClass = TEXT("My Window Class!");
 
     if (!RegMyWindowClass(hInstance, lpzClass))
         return 1;
 
-    const int WINDOW_WIDTH = screenWidth, WINDOW_HEIGHT = screenHeight;
+    const int WINDOW_WIDTH = 800, WINDOW_HEIGHT = 600;
 
     HWND hWnd = CreateWindow(lpzClass, TEXT("Dialog Window"),
                              WS_OVERLAPPEDWINDOW | WS_VISIBLE,
@@ -37,14 +33,23 @@ int APIENTRY WinMain(HINSTANCE hInstance,
                              hInstance, nullptr);
     if (!hWnd) return 2;
 
+    g_RHINO_HWND = hWnd;
+    g_RHINO_HInstance = hInstance;
+
+    Application application{};
+    application.Init();
+
     MSG msg = {nullptr};
     int iGetOk = 0;
     while ((iGetOk = GetMessage(&msg, nullptr, 0, 0)) != 0) {
         if (iGetOk == -1) return 3;
+
+        application.Logic();
+
         TranslateMessage(&msg);
         DispatchMessage(&msg);
     }
-
+    application.Release();
     return static_cast<int>(msg.wParam);
 }
 
@@ -60,31 +65,28 @@ ATOM RegMyWindowClass(HINSTANCE hInst, LPCTSTR lpzClassName) {
 }
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
-    if (message == WM_CREATE) {
-        SetWindowLongPtr(hWnd, GWLP_USERDATA,
-                         reinterpret_cast<LONG_PTR>(reinterpret_cast<CREATESTRUCT *>(lParam)->lpCreateParams));
-    }
+    // if (message == WM_CREATE) {
+    //     SetWindowLongPtr(hWnd, GWLP_USERDATA,
+    //                      reinterpret_cast<LONG_PTR>(reinterpret_cast<CREATESTRUCT *>(lParam)->lpCreateParams));
+    // }
     // auto *game = reinterpret_cast<Core::Win32GameRoot*>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
 
     switch (message) {
-        case WM_CREATE:
-            break;
-        case WM_PAINT:
-            break;
-        case WM_SIZE:
-            g_RHINO_HWND = hWnd;
-            g_RHINO_HInstance = GetModuleHandle(NULL);
-            mainLogic();
-            break;
-        case WM_KEYDOWN:
-            break;
-        case WM_KEYUP:
-            break;
-        case WM_MOUSEMOVE:
-            break;
-        case WM_DESTROY:
-            PostQuitMessage(0);
-            break;
+        // case WM_CREATE:
+        //     break;
+        // case WM_PAINT:
+        //     break;
+        // case WM_SIZE:
+        //     break;
+        // case WM_KEYDOWN:
+        //     break;
+        // case WM_KEYUP:
+        //     break;
+        // case WM_MOUSEMOVE:
+        //     break;
+        // case WM_DESTROY:
+        //     PostQuitMessage(0);
+        //     break;
         default:
             return DefWindowProc(hWnd, message, wParam, lParam);
     }
