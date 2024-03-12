@@ -7,6 +7,8 @@
 #include <iostream>
 #include <vector>
 
+#include <Windows.h>
+
 std::vector<uint8_t> ReadBinary(std::istream& stream) noexcept {
     std::streamsize size = stream.tellg();
     stream.seekg(0, std::ios::beg);
@@ -24,7 +26,7 @@ int main() {
     RDOCIntegration::StartCapture();
 
 
-    RHINOInterface* rhi = CreateRHINO(BackendAPI::D3D12);
+    RHINOInterface* rhi = CreateRHINO(BackendAPI::Vulkan);
     rhi->Initialize();
     DescriptorHeap* heap = rhi->CreateDescriptorHeap(DescriptorHeapType::SRV_CBV_UAV, 10, "Heap");
 
