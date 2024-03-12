@@ -1,0 +1,141 @@
+#include <cassert>
+#include <fstream>
+#include <iostream>
+#include <vector>
+
+
+#include "FrameDebuggerIntegration.h"
+#include "RHINO.h"
+#include "Utils/Common.h"
+
+static std::vector<uint8_t> ReadBinary(std::istream& stream) noexcept {
+    std::streamsize size = stream.tellg();
+    stream.seekg(0, std::ios::beg);
+    std::vector<uint8_t> buffer(size);
+    if (stream.read(reinterpret_cast<char*>(buffer.data()), size))
+    {
+        /* worked! */
+    }
+    return buffer;
+}
+
+void mainLogic() noexcept {
+        using namespace RHINO;
+    // system("pause");
+    RDOCIntegration::StartCapture();
+
+
+    RHINOInterface* rhi = CreateRHINO(BackendAPI::Vulkan);
+    rhi->Initialize();
+    DescriptorHeap* heap = rhi->CreateDescriptorHeap(DescriptorHeapType::SRV_CBV_UAV, 10, "Heap");
+
+    Buffer* bufCBV = rhi->CreateBuffer(64, ResourceHeapType::Default, ResourceUsage::ConstantBuffer, 0, "ConstantB");
+
+    Buffer* destUAV1 = rhi->CreateBuffer(sizeof(int) * 64, ResourceHeapType::Default, ResourceUsage::UnorderedAccess | ResourceUsage::CopySource, 0, "DestUAV1");
+    Buffer* destUAV2 = rhi->CreateBuffer(sizeof(int) * 64, ResourceHeapType::Default, ResourceUsage::UnorderedAccess | ResourceUsage::CopySource, 0, "DestUAV2");
+    Buffer* destUAV3 = rhi->CreateBuffer(sizeof(int) * 64, ResourceHeapType::Default, ResourceUsage::UnorderedAccess | ResourceUsage::CopySource, 0, "DestUAV3");
+    Buffer* rbkUAV1 = rhi->CreateBuffer(sizeof(int) * 64, ResourceHeapType::Readback, ResourceUsage::CopyDest, 0, "DestUAV1");
+    Buffer* rbkUAV2 = rhi->CreateBuffer(sizeof(int) * 64, ResourceHeapType::Readback, ResourceUsage::CopyDest, 0, "DestUAV2");
+    Buffer* rbkUAV3 = rhi->CreateBuffer(sizeof(int) * 64, ResourceHeapType::Readback, ResourceUsage::CopyDest, 0, "DestUAV3");
+
+    WriteBufferDescriptorDesc desc{};
+    desc.offsetInHeap = 0;
+    desc.bufferOffset = 0;
+    // desc.buffer = bufCBV;
+    // heap->WriteCBV(desc);
+
+
+    desc.buffer = destUAV1;
+    desc.size = sizeof(int) * 64;
+    desc.bufferStructuredStride = sizeof(int);
+    desc.offsetInHeap = 0;
+    heap->WriteUAV(desc);
+    desc.buffer = destUAV2;
+    desc.size = sizeof(int) * 64;
+    desc.bufferStructuredStride = sizeof(int);
+    desc.offsetInHeap = 1;
+    heap->WriteUAV(desc);
+    desc.buffer = destUAV3;
+    desc.size = sizeof(int) * 64;
+    desc.bufferStructuredStride = sizeof(int);
+    desc.offsetInHeap = 5;
+    heap->WriteUAV(desc);
+
+    std::ifstream shaderFile{"out.scar", std::ios::binary | std::ios::ate};
+    assert(shaderFile.is_open());
+    auto bytecode = ReadBinary(shaderFile);
+    shaderFile.close();
+    // assert(bytecode.size() % 4 == 0);
+
+    // const DescriptorRangeDesc space0rd[] = {
+    //     DescriptorRangeDesc{DescriptorRangeType::UAV, 0, 2},
+    // };
+    //
+    // const DescriptorRangeDesc space1rd[] = {
+    //     DescriptorRangeDesc{DescriptorRangeType::UAV, 1, 1},
+    // };
+    //
+    // const DescriptorSpaceDesc spaces[] = {
+    //     DescriptorSpaceDesc{0, 0, RHINO_ARR_SIZE(space0rd), space0rd},
+    //     DescriptorSpaceDesc{1, 4, RHINO_ARR_SIZE(space1rd), space1rd},
+    // };
+    //
+    //
+    // ComputePSODesc psoDesc{};
+    // psoDesc.CS.entrypoint = "main";
+    // psoDesc.CS.bytecodeSize = bytecode.size();
+    // psoDesc.CS.bytecode = bytecode.data();
+    // psoDesc.debugName = "TestCPSO";
+    // psoDesc.spacesCount = RHINO_ARR_SIZE(spaces);
+    // psoDesc.spacesDescs = spaces;
+    // ComputePSO* pso = rhi->CompileComputePSO(psoDesc);
+
+    ComputePSO* pso = rhi->CompileSCARComputePSO(bytecode.data(), bytecode.size(), "TestCPSO");
+
+    // RDOCIntegration::StartCapture();
+
+    CommandList* cmd = rhi->AllocateCommandList("CMDList");
+    cmd->SetComputePSO(pso);
+    cmd->SetHeap(heap, nullptr);
+    cmd->Dispatch({1, 1, 1});
+
+    rhi->SubmitCommandList(cmd);
+    rhi->ReleaseCommandList(cmd);
+
+    CommandList* cmd2 = rhi->AllocateCommandList("CMDList");
+    cmd2->CopyBuffer(destUAV1, rbkUAV1, 0, 0, sizeof(int) * 64);
+    cmd2->CopyBuffer(destUAV2, rbkUAV2, 0, 0, sizeof(int) * 64);
+    cmd2->CopyBuffer(destUAV3, rbkUAV3, 0, 0, sizeof(int) * 64);
+    rhi->SubmitCommandList(cmd2);
+    rhi->ReleaseCommandList(cmd2);
+
+
+    auto* data1 = static_cast<int*>(rhi->MapMemory(rbkUAV1, 0, sizeof(int) * 64));
+    auto* data2 = static_cast<int*>(rhi->MapMemory(rbkUAV2, 0, sizeof(int) * 64));
+    auto* data3 = static_cast<int*>(rhi->MapMemory(rbkUAV3, 0, sizeof(int) * 64));
+
+    std::vector<int> vdata1{};
+    vdata1.resize(64);
+    std::vector<int> vdata2{};
+    vdata2.resize(64);
+    std::vector<int> vdata3{};
+    vdata3.resize(64);
+
+    memcpy(vdata1.data(), data1, sizeof(int) * 64);
+    memcpy(vdata2.data(), data2, sizeof(int) * 64);
+    memcpy(vdata3.data(), data3, sizeof(int) * 64);
+
+    RDOCIntegration::EndCapture();
+
+    rhi->ReleaseComputePSO(pso);
+    rhi->ReleaseDescriptorHeap(heap);
+    rhi->ReleaseBuffer(bufCBV);
+    rhi->ReleaseBuffer(rbkUAV1);
+    rhi->ReleaseBuffer(rbkUAV2);
+    rhi->ReleaseBuffer(rbkUAV3);
+    rhi->ReleaseBuffer(destUAV1);
+    rhi->ReleaseBuffer(destUAV2);
+    rhi->ReleaseBuffer(destUAV3);
+    rhi->Release();
+    delete rhi;
+}
