@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.25)
 project(Test)
 
-add_executable(Test
+add_executable(Test WIN32
         WinMain.cpp
         FrameDebuggerIntegration.cpp
         FrameDebuggerIntegration.h
