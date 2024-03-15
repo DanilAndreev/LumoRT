@@ -1,5 +1,7 @@
 #pragma once
 
+#ifdef WIN32
+
 struct RENDERDOC_API_1_4_1;
 typedef RENDERDOC_API_1_4_1 RENDERDOC_API_1_4_2;
 
@@ -15,3 +17,5 @@ private:
     static RENDERDOC_API_1_4_2* ms_RDCAPI;
     static bool ms_NGFXLoaded;
 };
+
+#endif

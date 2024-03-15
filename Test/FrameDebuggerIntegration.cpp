@@ -1,3 +1,5 @@
+#ifdef WIN32
+
 #include "FrameDebuggerIntegration.h"
 #include "ThirdParty/renderdoc_app.h"
 #include <Windows.h>
@@ -159,3 +161,5 @@ void RDOCIntegration::EndCapture() {
     PIXEndCapture(FALSE);
 #endif
 }
+
+#endif
