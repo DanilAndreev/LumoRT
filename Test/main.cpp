@@ -1,7 +1,8 @@
-#include <Windows.h>
-
-#include "mainLogic.h"
+#include "Application.h"
 
 int main() {
-    mainLogic();
+    Application app;
+    app.Init();
+    app.Logic();
+    app.Release();
 }
