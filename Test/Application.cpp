@@ -95,8 +95,8 @@ void Application::Logic() noexcept {
     // RDOCIntegration::StartCapture();
 
     CommandList* cmd = m_RHI->AllocateCommandList("CMDList");
-    cmd->SetComputePSO(pso);
     cmd->SetHeap(heap, nullptr);
+    cmd->SetComputePSO(pso);
     cmd->Dispatch({1, 1, 1});
 
     m_RHI->SubmitCommandList(cmd);
