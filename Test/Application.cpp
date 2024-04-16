@@ -53,7 +53,7 @@ void Application::Logic() noexcept {
     desc.buffer = destUAV2;
     desc.size = sizeof(int) * 64;
     desc.bufferStructuredStride = sizeof(int);
-    desc.offsetInHeap = 1;
+    desc.offsetInHeap = 4;
     heap->WriteUAV(desc);
     desc.buffer = destUAV3;
     desc.size = sizeof(int) * 64;
