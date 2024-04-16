@@ -1,5 +1,5 @@
 RWStructuredBuffer<int> DestUAV1 : register(u0, space0);
-RWStructuredBuffer<int> DestUAV2 : register(u0, space1);
+RWStructuredBuffer<int> DestUAV2 : register(u1, space0);
 RWStructuredBuffer<int> DestUAV3 : register(u1, space1);
 
 [numthreads(64, 1, 1)]
