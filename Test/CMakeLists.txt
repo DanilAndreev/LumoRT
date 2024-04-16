@@ -10,7 +10,7 @@ set(Files
         Application.h
 )
 
-add_executable(Test WIN32 WinMain.cpp ${Files})
+add_executable(Test main.cpp ${Files})
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../RHINO RHINO)
 target_link_libraries(Test PUBLIC RHINO)
