@@ -1,11 +1,14 @@
 #pragma once
 
+
 #include <simd/simd.h>
+#include <DirectXMath.h>
 
 namespace Math3D {
     union Float1 {
         float values[1];
         simd::float1 simd;
+        DirectX::XMFLOAT3 simd;
     };
 
     union Float2 {
