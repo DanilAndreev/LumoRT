@@ -21,9 +21,10 @@ static std::vector<uint8_t> ReadBinary(std::istream& stream) noexcept {
 
 void Application::Init() noexcept {
     using namespace RHINO;
-    m_RHI = CreateRHINO(BackendAPI::Vulkan);
+    m_RHI = CreateRHINO(BackendAPI::D3D12);
     m_RHI->Initialize();
 }
+
 void Application::Logic() noexcept {
     using namespace RHINO;
     RDOCIntegration::StartCapture();
