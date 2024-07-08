@@ -6,6 +6,7 @@ namespace Math3D {
     Float4x4 operator*(const Float4x4 &lh, const Float4x4 &rh) noexcept {
 //        Float4 res{};
 //        return res;
+        return {};
     }
 
     Float4 operator*(const Float4x4& lh, const Float4& rh) noexcept {

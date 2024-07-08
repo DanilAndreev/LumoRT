@@ -16,7 +16,8 @@ set(HeaderList
         include/Math3DMatrixFunctions.h
         include/Math3DEssentials.h
         include/Math3DVectorFunctions.h
-        include/Math3D.h)
+        include/Math3D.h
+        include/Math3DHelpers.h)
 
 add_library(Math3D ${SourceList} ${HeaderList})
 set_target_properties(Math3D PROPERTIES LINKER_LANGUAGE CXX)

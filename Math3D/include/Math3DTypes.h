@@ -1,29 +1,32 @@
 #pragma once
 
-
-#include <simd/simd.h>
-#include <DirectXMath.h>
+#include "Math3DHelpers.h"
 
 namespace Math3D {
+    IFDX(using namespace DirectX);
+
     union Float1 {
         float values[1];
-        simd::float1 simd;
+        IFAPPLE(simd::float1 simd);
         DirectX::XMFLOAT3 simd;
     };
 
     union Float2 {
         float values[2];
-        simd::float4 simd;
+        IFAPPLE(simd::float4 simd);
+        IFDX(XMFLOAT2 simd);
     };
 
     union Float3 {
         float values[3];
-        simd::float3 simd;
+        IFAPPLE(simd::float3 simd);
+        IFDX(XMFLOAT3 simd);
     };
 
     union Float4 {
         float values[4];
-        simd::float4 simd;
+        IFAPPLE(simd::float4 simd);
+        IFDX(XMFLOAT4 simd);
 
         inline operator Float3() const noexcept { return Float3{values[0], values[1], values[2]}; }
         inline float& operator[](size_t index) noexcept { return values[index]; }
@@ -33,7 +36,8 @@ namespace Math3D {
     union Float4x4 {
         Float4 columns[4];
         float values[16];
-        simd::float4x4 simd;
+        IFAPPLE(simd::float4x4 simd);
+        IFDX(XMMATRIX simd);
 
         inline Float4& operator[](size_t index) noexcept { return columns[index]; }
         inline const Float4& operator[](size_t index) const noexcept { return columns[index]; }

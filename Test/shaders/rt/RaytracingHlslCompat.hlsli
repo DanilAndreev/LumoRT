@@ -18,7 +18,7 @@
 using namespace DirectX;
 
 // Shader will use byte encoding to access indices.
-typedef UINT16 Index;
+using Index = uint16_t;
 #endif
 
 struct SceneConstantBuffer

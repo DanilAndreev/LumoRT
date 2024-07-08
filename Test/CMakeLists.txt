@@ -16,6 +16,11 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../RHINO RHINO)
 target_link_libraries(Test PUBLIC RHINO)
 target_link_libraries(Test PUBLIC SCARs)
 
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../Math3D Math3D)
+target_link_libraries(Test PUBLIC Math3D)
+
+target_include_directories(Test PUBLIC shaders/rt)
+
 if(APPLE)
 else()
     target_link_libraries(Test PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/WinPixEventRuntime/bin/x64/WinPixEventRuntime.lib)

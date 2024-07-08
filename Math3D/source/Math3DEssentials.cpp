@@ -1,4 +1,6 @@
 #include "Math3DEssentials.h"
+
+#define _USE_MATH_DEFINES
 #include <cmath>
 
 namespace Math3D {
