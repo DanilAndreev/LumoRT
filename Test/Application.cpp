@@ -34,7 +34,13 @@ void Application::Logic() noexcept {
     using namespace RHINO;
     RDOCIntegration::StartCapture();
 
-    // DescriptorHeap* heap = m_RHI->CreateDescriptorHeap(DescriptorHeapType::SRV_CBV_UAV, 10, "Heap");
+    DescriptorHeap* heap = m_RHI->CreateDescriptorHeap(DescriptorHeapType::SRV_CBV_UAV, 2, "Heap");
+    Texture2D* backbuffer = m_RHI->CreateTexture2D({800, 600}, 1, TextureFormat::R32G32B32A32_FLOAT, ResourceUsage::UnorderedAccess | ResourceUsage::CopySource, "BackBuffer");
+
+    WriteTexture2DDescriptorDesc textureDescriptorDesc{};
+    textureDescriptorDesc.texture = backbuffer;
+    textureDescriptorDesc.offsetInHeap = 0;
+    heap->WriteUAV(textureDescriptorDesc);
 
     Index indices[] =
     {
@@ -114,10 +120,10 @@ void Application::Logic() noexcept {
 
     BLASDesc blasDesc{};
     blasDesc.indexBuffer = indexBuffer;
-    blasDesc.indexCount = sizeof(indices) / sizeof(Index);
+    blasDesc.indexCount = std::size(indices);
     blasDesc.indexFormat = IndexFormat::R16_UINT;
     blasDesc.vertexBuffer = vertexBuffer;
-    blasDesc.vertexCount = sizeof(vertices) / sizeof(Vertex);
+    blasDesc.vertexCount = std::size(vertices);
     blasDesc.vertexStride = sizeof(Vertex);
     blasDesc.vertexFormat = TextureFormat::R32G32B32_FLOAT;
     blasDesc.transformBuffer = nullptr;
@@ -150,11 +156,64 @@ void Application::Logic() noexcept {
     m_RHI->SubmitCommandList(tlasCMD);
     m_RHI->ReleaseCommandList(tlasCMD);
     m_RHI->ReleaseBuffer(tlasScratch);
+
+    WriteTLASDescriptorDesc tlasDescriptorDesc{};
+    tlasDescriptorDesc.tlas = tlas;
+    tlasDescriptorDesc.offsetInHeap = 1;
+
     // -------------------------------------------------------------------------------------------------------------------------------------------
 
-    /*
+    std::ifstream smSourceFile("rt/rt.dxil", std::ios::binary | std::ios::ate);
+    assert(smSourceFile.is_open());
+    auto smSource = ReadBinary(smSourceFile);
+    smSourceFile.close();
+
+    ShaderModule raygenSM{smSource.size(), smSource.data(), "MyRaygenShader"};
+    ShaderModule missSM{smSource.size(), smSource.data(), "MyMissShader"};
+    ShaderModule closestHitSM{smSource.size(), smSource.data(), "MyClosestHitShader"};
+    ShaderModule anyHitSM{smSource.size(), smSource.data(), ""};
+    ShaderModule intersectionSM{smSource.size(), smSource.data(), ""};
+
+    ShaderModule shaderModules[] = {raygenSM, missSM, closestHitSM, /* anyHitSM, intersectionSM */};
+
+    RTShaderTableRecord records[3] = {};
+    records[0].recordType = RTShaderTableRecordType::RayGeneration;
+    records[0].rayGeneration.rayGenerationShaderIndex = 0;
+    records[1].recordType = RTShaderTableRecordType::Miss;
+    records[1].miss.missShaderIndex = 1;
+    records[2].recordType = RTShaderTableRecordType::HitGroup;
+    records[2].hitGroup.closestHitShaderIndex = 2;
+    records[2].hitGroup.clothestHitShaderEnabled = true;
+    // records[2].hitGroup.anyHitShaderIndex = 3;
+    // records[2].hitGroup.intersectionShaderIndex = 4;
+
+    DescriptorRangeDesc descriptorRangeSRV{};
+    descriptorRangeSRV.descriptorsCount = 1;
+    descriptorRangeSRV.rangeType = DescriptorRangeType::SRV;
+    descriptorRangeSRV.baseRegisterSlot = 0;
+
+    DescriptorRangeDesc descriptorRangeUAV{};
+    descriptorRangeUAV.descriptorsCount = 1;
+    descriptorRangeUAV.rangeType = DescriptorRangeType::UAV;
+    descriptorRangeUAV.baseRegisterSlot = 1;
+
+    DescriptorRangeDesc descriptorRanges[] = {descriptorRangeSRV, descriptorRangeUAV};
+
+    DescriptorSpaceDesc spaceDesc{};
+    spaceDesc.space = 0;
+    spaceDesc.rangeDescs = descriptorRanges;
+    spaceDesc.rangeDescCount = std::size(descriptorRanges);
+    spaceDesc.offsetInDescriptorsFromTableStart = 0;
+
     RTPSODesc rtpsoDesc{};
-    // rtpsoDesc. ;
+    rtpsoDesc.shaderModules = shaderModules;
+    rtpsoDesc.shaderModulesCount = std::size(shaderModules);
+    rtpsoDesc.records = records;
+    rtpsoDesc.recordsCount = std::size(records);
+    rtpsoDesc.spacesDescs = &spaceDesc;
+    rtpsoDesc.spacesCount = 1;
+    rtpsoDesc.maxTraceRecursionDepth = 1;
+    rtpsoDesc.debugName = "RTPSO";
     RTPSO* pso = m_RHI->CreateRTPSO(rtpsoDesc);
 
     CommandList* rtpsoCMD = m_RHI->AllocateCommandList("RTPSO CMD");
@@ -164,15 +223,22 @@ void Application::Logic() noexcept {
 
     // -------------------------------------------------------------------------------------------------------------------------------------------
     CommandList* traceCMD = m_RHI->AllocateCommandList("TraceCMD");
-    traceCMD->DispatchRays();
 
+    DispatchRaysDesc dispatchRaysDesc{};
+    dispatchRaysDesc.width = 800;
+    dispatchRaysDesc.height = 600;
+    dispatchRaysDesc.pso = pso;
+    dispatchRaysDesc.rayGenerationShaderRecordIndex = 0;
+    dispatchRaysDesc.missShaderStartRecordIndex = 1;
+    dispatchRaysDesc.hitGroupStartRecordIndex = 2;
+    dispatchRaysDesc.CDBSRVUAVHeap = heap;
+    dispatchRaysDesc.samplerHeap = nullptr;
+    traceCMD->DispatchRays(dispatchRaysDesc);
 
+    m_RHI->SubmitCommandList(traceCMD);
+    m_RHI->ReleaseCommandList(traceCMD);
 
-
-
-
-
-
+    /*
     Buffer* bufCBV = m_RHI->CreateBuffer(64, ResourceHeapType::Default, ResourceUsage::ConstantBuffer, 0, "ConstantB");
     Buffer* destUAV1 = m_RHI->CreateBuffer(sizeof(int) * 64, ResourceHeapType::Default, ResourceUsage::UnorderedAccess | ResourceUsage::CopySource, 0, "DestUAV1");
     Buffer* destUAV2 = m_RHI->CreateBuffer(sizeof(int) * 64, ResourceHeapType::Default, ResourceUsage::UnorderedAccess | ResourceUsage::CopySource, 0, "DestUAV2");
