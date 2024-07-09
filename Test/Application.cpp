@@ -214,6 +214,8 @@ void Application::Logic() noexcept {
     rtpsoDesc.spacesDescs = &spaceDesc;
     rtpsoDesc.spacesCount = 1;
     rtpsoDesc.maxTraceRecursionDepth = 1;
+    rtpsoDesc.maxPayloadSizeInBytes = 32;
+    rtpsoDesc.maxAttributeSizeInBytes = 32;
     rtpsoDesc.debugName = "RTPSO";
     RTPSO* pso = m_RHI->CreateRTPSO(rtpsoDesc);
 
