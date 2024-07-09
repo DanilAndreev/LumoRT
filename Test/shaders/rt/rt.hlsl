@@ -60,13 +60,13 @@ void MyRaygenShader()
 [shader("closesthit")]
 void MyClosestHitShader(inout RayPayload payload, in BuiltInTriangleIntersectionAttributes attr)
 {
-    payload.color = float4(1, 0, 0, 1);
+    payload.color = float4(attr.barycentrics.x, attr.barycentrics.y, 0, 1);
 }
 
 [shader("miss")]
 void MyMissShader(inout RayPayload payload)
 {
-    float4 background = float4(0.0f, 1.0f, 0.0f, 1.0f);
+    float4 background = float4(0.0f, 0.0f, 1.0f, 1.0f);
     payload.color = background;
 }
 
