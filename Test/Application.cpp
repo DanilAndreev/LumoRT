@@ -11,6 +11,8 @@
 
 #include <RaytracingHlslCompat.hlsli>
 
+constexpr size_t BACKBUFFER_WIDTH = 800;
+constexpr size_t BACKBUFFER_HEIGHT = 600;
 
 static std::vector<uint8_t> ReadBinary(std::istream& stream) noexcept {
     std::streamsize size = stream.tellg();
@@ -29,13 +31,33 @@ void Application::Init() noexcept {
     m_RHI->Initialize();
 }
 
+SceneConstantBuffer CreateCameraConstants() noexcept {
+    FXMVECTOR eye = {4.0f, 4.0f, 4.0f};
+    FXMVECTOR at = {0.0f, 0.0f, 0.0f};
+    FXMVECTOR up = {0.0f, 1.0f, 0.0f};
+
+    float aspectRatio = static_cast<float>(BACKBUFFER_HEIGHT) / static_cast<float>(BACKBUFFER_WIDTH);
+
+    float fovAngleY = 45.0f;
+    XMMATRIX view = XMMatrixLookAtLH(eye, at, up);
+    XMMATRIX proj = XMMatrixPerspectiveFovLH(XMConvertToRadians(fovAngleY), aspectRatio, 1.0f, 125.0f);
+    XMMATRIX viewProj = view * proj;
+
+    SceneConstantBuffer result{};
+
+    result.projectionToWorld = XMMatrixTranspose(XMMatrixInverse(nullptr, viewProj));
+    result.cameraPosition = eye;
+    result.cameraPosition = {4.0f, 4.0f, 4.0f, 1.0f};
+    return result;
+}
+
 void Application::Logic() noexcept {
     using namespace Math3D;
     using namespace RHINO;
     RDOCIntegration::StartCapture();
 
-    DescriptorHeap* heap = m_RHI->CreateDescriptorHeap(DescriptorHeapType::SRV_CBV_UAV, 2, "Heap");
-    Texture2D* backbuffer = m_RHI->CreateTexture2D({800, 600}, 1, TextureFormat::R32G32B32A32_FLOAT, ResourceUsage::UnorderedAccess | ResourceUsage::CopySource, "BackBuffer");
+    DescriptorHeap* heap = m_RHI->CreateDescriptorHeap(DescriptorHeapType::SRV_CBV_UAV, 3, "Heap");
+    Texture2D* backbuffer = m_RHI->CreateTexture2D({BACKBUFFER_WIDTH, BACKBUFFER_HEIGHT}, 1, TextureFormat::R32G32B32A32_FLOAT, ResourceUsage::UnorderedAccess | ResourceUsage::CopySource, "BackBuffer");
 
     WriteTexture2DDescriptorDesc textureDescriptorDesc{};
     textureDescriptorDesc.texture = backbuffer;
@@ -95,26 +117,42 @@ void Application::Logic() noexcept {
         { XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT3(0.0f, 0.0f, 1.0f) },
         { XMFLOAT3(-1.0f, 1.0f, 1.0f), XMFLOAT3(0.0f, 0.0f, 1.0f) },
     };
-    Buffer* vertexStaging = m_RHI->CreateBuffer(sizeof(vertices), ResourceHeapType::Upload, ResourceUsage::CopySource, 0, "VertexB");
+    Buffer* vertexStaging = m_RHI->CreateBuffer(sizeof(vertices), ResourceHeapType::Upload, ResourceUsage::CopySource, 0, "VertexBStaging");
     void* mappedVertexStaging = m_RHI->MapMemory(vertexStaging, 0, sizeof(vertices));
     memcpy(mappedVertexStaging, vertices, sizeof(vertices));
     m_RHI->UnmapMemory(vertexStaging);
 
-    Buffer* indexStaging = m_RHI->CreateBuffer(sizeof(indices), ResourceHeapType::Upload, ResourceUsage::CopySource, 0, "IndexB");
+    Buffer* indexStaging = m_RHI->CreateBuffer(sizeof(indices), ResourceHeapType::Upload, ResourceUsage::CopySource, 0, "IndexBStaging");
     void* mappedIndexStaging = m_RHI->MapMemory(indexStaging, 0, sizeof(indices));
     memcpy(mappedIndexStaging, indices, sizeof(indices));
     m_RHI->UnmapMemory(indexStaging);
 
+    SceneConstantBuffer sceneConstantPayload = CreateCameraConstants();
+    Buffer* cameraConstantStaging = m_RHI->CreateBuffer(sizeof(sceneConstantPayload), ResourceHeapType::Upload, ResourceUsage::CopySource, 0, "CameraConstantBStaging");
+    void* mappedCameraConstantsStaging = m_RHI->MapMemory(cameraConstantStaging, 0, sizeof(sceneConstantPayload));
+    memcpy(mappedCameraConstantsStaging, &sceneConstantPayload, sizeof(sceneConstantPayload));
+    m_RHI->UnmapMemory(cameraConstantStaging);
+
+
     Buffer* vertexBuffer = m_RHI->CreateBuffer(sizeof(vertices), ResourceHeapType::Default, ResourceUsage::VertexBuffer | ResourceUsage::CopyDest, 0, "VertexB");
     Buffer* indexBuffer = m_RHI->CreateBuffer(sizeof(indices), ResourceHeapType::Default, ResourceUsage::IndexBuffer | ResourceUsage::CopyDest, 0, "IndexB");
+    Buffer* cameraConstantBuffer = m_RHI->CreateBuffer(sizeof(sceneConstantPayload), ResourceHeapType::Default, ResourceUsage::ConstantBuffer | ResourceUsage::CopyDest, 0, "CameraConstantB");
 
     CommandList* uploadCMD = m_RHI->AllocateCommandList("UploadCMD");
     uploadCMD->CopyBuffer(vertexStaging, vertexBuffer, 0, 0, sizeof(vertices));
     uploadCMD->CopyBuffer(indexStaging, indexBuffer, 0, 0, sizeof(indices));
+    uploadCMD->CopyBuffer(cameraConstantStaging, cameraConstantBuffer, 0, 0, sizeof(sceneConstantPayload));
     m_RHI->SubmitCommandList(uploadCMD);
     m_RHI->ReleaseCommandList(uploadCMD);
     m_RHI->ReleaseBuffer(vertexStaging);
     m_RHI->ReleaseBuffer(indexStaging);
+
+    WriteBufferDescriptorDesc cbDescriptorDesc{};
+    cbDescriptorDesc.buffer = cameraConstantBuffer;
+    cbDescriptorDesc.size = sizeof(sceneConstantPayload);
+    cbDescriptorDesc.bufferOffset = 0;
+    cbDescriptorDesc.offsetInHeap = 2;
+    heap->WriteCBV(cbDescriptorDesc);
 
     // -------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -198,7 +236,12 @@ void Application::Logic() noexcept {
     descriptorRangeUAV.rangeType = DescriptorRangeType::UAV;
     descriptorRangeUAV.baseRegisterSlot = 1;
 
-    DescriptorRangeDesc descriptorRanges[] = {descriptorRangeSRV, descriptorRangeUAV};
+    DescriptorRangeDesc descriptorRangeCBV{};
+    descriptorRangeCBV.descriptorsCount = 1;
+    descriptorRangeCBV.rangeType = DescriptorRangeType::CBV;
+    descriptorRangeCBV.baseRegisterSlot = 2;
+
+    DescriptorRangeDesc descriptorRanges[] = {descriptorRangeSRV, descriptorRangeUAV, descriptorRangeCBV};
 
     DescriptorSpaceDesc spaceDesc{};
     spaceDesc.space = 0;
@@ -228,8 +271,8 @@ void Application::Logic() noexcept {
     CommandList* traceCMD = m_RHI->AllocateCommandList("TraceCMD");
 
     DispatchRaysDesc dispatchRaysDesc{};
-    dispatchRaysDesc.width = 800;
-    dispatchRaysDesc.height = 600;
+    dispatchRaysDesc.width = BACKBUFFER_WIDTH;
+    dispatchRaysDesc.height = BACKBUFFER_HEIGHT;
     dispatchRaysDesc.pso = pso;
     dispatchRaysDesc.rayGenerationShaderRecordIndex = 0;
     dispatchRaysDesc.missShaderStartRecordIndex = 1;
