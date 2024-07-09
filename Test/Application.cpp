@@ -39,7 +39,7 @@ void Application::Logic() noexcept {
 
     WriteTexture2DDescriptorDesc textureDescriptorDesc{};
     textureDescriptorDesc.texture = backbuffer;
-    textureDescriptorDesc.offsetInHeap = 0;
+    textureDescriptorDesc.offsetInHeap = 1;
     heap->WriteUAV(textureDescriptorDesc);
 
     Index indices[] =
@@ -159,7 +159,8 @@ void Application::Logic() noexcept {
 
     WriteTLASDescriptorDesc tlasDescriptorDesc{};
     tlasDescriptorDesc.tlas = tlas;
-    tlasDescriptorDesc.offsetInHeap = 1;
+    tlasDescriptorDesc.offsetInHeap = 0;
+    heap->WriteSRV(tlasDescriptorDesc);
 
     // -------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -236,7 +237,7 @@ void Application::Logic() noexcept {
     traceCMD->DispatchRays(dispatchRaysDesc);
 
     m_RHI->SubmitCommandList(traceCMD);
-    m_RHI->ReleaseCommandList(traceCMD);
+    // m_RHI->ReleaseCommandList(traceCMD);
 
     /*
     Buffer* bufCBV = m_RHI->CreateBuffer(64, ResourceHeapType::Default, ResourceUsage::ConstantBuffer, 0, "ConstantB");

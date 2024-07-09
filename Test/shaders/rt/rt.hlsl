@@ -18,32 +18,15 @@
 RaytracingAccelerationStructure Scene : register(t0, space0);
 RWTexture2D<float4> RenderTarget : register(u1, space0);
 
-
-typedef BuiltInTriangleIntersectionAttributes MyAttributes;
-
 struct RayPayload
 {
     float4 color;
 };
 
-// Retrieve hit world position.
-float3 HitWorldPosition()
-{
-    return WorldRayOrigin() + RayTCurrent() * WorldRayDirection();
-}
-
-// Retrieve attribute at a hit position interpolated from vertex attributes using the hit's barycentrics.
-float3 HitAttribute(float3 vertexAttribute[3], BuiltInTriangleIntersectionAttributes attr)
-{
-    return vertexAttribute[0] +
-        attr.barycentrics.x * (vertexAttribute[1] - vertexAttribute[0]) +
-        attr.barycentrics.y * (vertexAttribute[2] - vertexAttribute[0]);
-}
-
 // Generate a ray in world space for a camera pixel corresponding to an index from the dispatched 2D grid.
 inline void GenerateCameraRay(uint2 index, out float3 origin, out float3 direction)
 {
-    float2 BACKBUFFER_DIMS = float2(800, 600);
+    float2 BACKBUFFER_DIMS = float2(400, 200);
 
     origin = float3((float(index.x) / BACKBUFFER_DIMS.x) * 2 - 1, (float(index.y) / BACKBUFFER_DIMS.y) * 2 - 1, -3.0f);
     direction = float3(0.0f, 0.0f, 1.0f);
@@ -75,7 +58,7 @@ void MyRaygenShader()
 }
 
 [shader("closesthit")]
-void MyClosestHitShader(inout RayPayload payload, in MyAttributes attr)
+void MyClosestHitShader(inout RayPayload payload, in BuiltInTriangleIntersectionAttributes attr)
 {
     payload.color = float4(1, 0, 0, 1);
 }
@@ -83,7 +66,7 @@ void MyClosestHitShader(inout RayPayload payload, in MyAttributes attr)
 [shader("miss")]
 void MyMissShader(inout RayPayload payload)
 {
-    float4 background = float4(0.0f, 0.2f, 0.4f, 1.0f);
+    float4 background = float4(0.0f, 1.0f, 0.0f, 1.0f);
     payload.color = background;
 }
 
