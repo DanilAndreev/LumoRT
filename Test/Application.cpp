@@ -56,6 +56,8 @@ void Application::Logic() noexcept {
     using namespace RHINO;
     RDOCIntegration::StartCapture();
 
+    Semaphore* semaphore = m_RHI->CreateSyncSemaphore(0);
+
     DescriptorHeap* heap = m_RHI->CreateDescriptorHeap(DescriptorHeapType::SRV_CBV_UAV, 3, "Heap");
     Texture2D* backbuffer = m_RHI->CreateTexture2D({BACKBUFFER_WIDTH, BACKBUFFER_HEIGHT}, 1, TextureFormat::R32G32B32A32_FLOAT, ResourceUsage::UnorderedAccess | ResourceUsage::CopySource, "BackBuffer");
 
@@ -142,7 +144,7 @@ void Application::Logic() noexcept {
     uploadCMD->CopyBuffer(vertexStaging, vertexBuffer, 0, 0, sizeof(vertices));
     uploadCMD->CopyBuffer(indexStaging, indexBuffer, 0, 0, sizeof(indices));
     uploadCMD->CopyBuffer(cameraConstantStaging, cameraConstantBuffer, 0, 0, sizeof(sceneConstantPayload));
-    m_RHI->SubmitCommandList(uploadCMD);
+    m_RHI->SubmitCommandList(uploadCMD, 0, nullptr, nullptr);
     m_RHI->ReleaseCommandList(uploadCMD);
     m_RHI->ReleaseBuffer(vertexStaging);
     m_RHI->ReleaseBuffer(indexStaging);
@@ -172,7 +174,7 @@ void Application::Logic() noexcept {
 
     CommandList* blasCMD = m_RHI->AllocateCommandList("BLAS CMD");
     BLAS* blas = blasCMD->BuildBLAS(blasDesc, blasScratch, 0, "BLAS");
-    m_RHI->SubmitCommandList(blasCMD);
+    m_RHI->SubmitCommandList(blasCMD, 0, nullptr, nullptr);
     m_RHI->ReleaseCommandList(blasCMD);
     m_RHI->ReleaseBuffer(blasScratch);
 
@@ -191,7 +193,7 @@ void Application::Logic() noexcept {
 
     CommandList* tlasCMD = m_RHI->AllocateCommandList("TLAS CMD");
     TLAS* tlas = tlasCMD->BuildTLAS(tlasDesc, tlasScratch, 0, "TLAS");
-    m_RHI->SubmitCommandList(tlasCMD);
+    m_RHI->SubmitCommandList(tlasCMD, 0, nullptr, nullptr);
     m_RHI->ReleaseCommandList(tlasCMD);
     m_RHI->ReleaseBuffer(tlasScratch);
 
@@ -266,7 +268,7 @@ void Application::Logic() noexcept {
 
     CommandList* rtpsoCMD = m_RHI->AllocateCommandList("RTPSO CMD");
     rtpsoCMD->BuildRTPSO(pso);
-    m_RHI->SubmitCommandList(rtpsoCMD);
+    m_RHI->SubmitCommandList(rtpsoCMD, 0, nullptr, nullptr);
     m_RHI->ReleaseCommandList(rtpsoCMD);
 
     // -------------------------------------------------------------------------------------------------------------------------------------------
@@ -283,7 +285,7 @@ void Application::Logic() noexcept {
     dispatchRaysDesc.samplerHeap = nullptr;
     traceCMD->DispatchRays(dispatchRaysDesc);
 
-    m_RHI->SubmitCommandList(traceCMD);
+    m_RHI->SubmitCommandList(traceCMD, 0, nullptr, nullptr);
     // m_RHI->ReleaseCommandList(traceCMD);
 
     /*
