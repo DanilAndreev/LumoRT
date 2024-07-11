@@ -202,18 +202,20 @@ void Application::Logic() noexcept {
 
     // -------------------------------------------------------------------------------------------------------------------------------------------
 
-    std::ifstream smSourceFile("rt/rt.dxil", std::ios::binary | std::ios::ate);
+    std::ifstream smSourceFile("rt/out.scar", std::ios::binary | std::ios::ate);
     assert(smSourceFile.is_open());
     auto smSource = ReadBinary(smSourceFile);
     smSourceFile.close();
 
-    ShaderModule raygenSM{smSource.size(), smSource.data(), "MyRaygenShader"};
-    ShaderModule missSM{smSource.size(), smSource.data(), "MyMissShader"};
-    ShaderModule closestHitSM{smSource.size(), smSource.data(), "MyClosestHitShader"};
-    ShaderModule anyHitSM{smSource.size(), smSource.data(), ""};
-    ShaderModule intersectionSM{smSource.size(), smSource.data(), ""};
 
-    ShaderModule shaderModules[] = {raygenSM, missSM, closestHitSM, /* anyHitSM, intersectionSM */};
+
+    // ShaderModule raygenSM{smSource.size(), smSource.data(), "MyRaygenShader"};
+    // ShaderModule missSM{smSource.size(), smSource.data(), "MyMissShader"};
+    // ShaderModule closestHitSM{smSource.size(), smSource.data(), "MyClosestHitShader"};
+    // ShaderModule anyHitSM{smSource.size(), smSource.data(), ""};
+    // ShaderModule intersectionSM{smSource.size(), smSource.data(), ""};
+    //
+    // ShaderModule shaderModules[] = {raygenSM, missSM, closestHitSM, /* anyHitSM, intersectionSM */};
 
     RTShaderTableRecord records[3] = {};
     records[0].recordType = RTShaderTableRecordType::RayGeneration;
@@ -226,41 +228,41 @@ void Application::Logic() noexcept {
     // records[2].hitGroup.anyHitShaderIndex = 3;
     // records[2].hitGroup.intersectionShaderIndex = 4;
 
-    DescriptorRangeDesc descriptorRangeSRV{};
-    descriptorRangeSRV.descriptorsCount = 1;
-    descriptorRangeSRV.rangeType = DescriptorRangeType::SRV;
-    descriptorRangeSRV.baseRegisterSlot = 0;
-
-    DescriptorRangeDesc descriptorRangeUAV{};
-    descriptorRangeUAV.descriptorsCount = 1;
-    descriptorRangeUAV.rangeType = DescriptorRangeType::UAV;
-    descriptorRangeUAV.baseRegisterSlot = 1;
-
-    DescriptorRangeDesc descriptorRangeCBV{};
-    descriptorRangeCBV.descriptorsCount = 1;
-    descriptorRangeCBV.rangeType = DescriptorRangeType::CBV;
-    descriptorRangeCBV.baseRegisterSlot = 2;
-
-    DescriptorRangeDesc descriptorRanges[] = {descriptorRangeSRV, descriptorRangeUAV, descriptorRangeCBV};
-
-    DescriptorSpaceDesc spaceDesc{};
-    spaceDesc.space = 0;
-    spaceDesc.rangeDescs = descriptorRanges;
-    spaceDesc.rangeDescCount = std::size(descriptorRanges);
-    spaceDesc.offsetInDescriptorsFromTableStart = 0;
+    // DescriptorRangeDesc descriptorRangeSRV{};
+    // descriptorRangeSRV.descriptorsCount = 1;
+    // descriptorRangeSRV.rangeType = DescriptorRangeType::SRV;
+    // descriptorRangeSRV.baseRegisterSlot = 0;
+    //
+    // DescriptorRangeDesc descriptorRangeUAV{};
+    // descriptorRangeUAV.descriptorsCount = 1;
+    // descriptorRangeUAV.rangeType = DescriptorRangeType::UAV;
+    // descriptorRangeUAV.baseRegisterSlot = 1;
+    //
+    // DescriptorRangeDesc descriptorRangeCBV{};
+    // descriptorRangeCBV.descriptorsCount = 1;
+    // descriptorRangeCBV.rangeType = DescriptorRangeType::CBV;
+    // descriptorRangeCBV.baseRegisterSlot = 2;
+    //
+    // DescriptorRangeDesc descriptorRanges[] = {descriptorRangeSRV, descriptorRangeUAV, descriptorRangeCBV};
+    //
+    // DescriptorSpaceDesc spaceDesc{};
+    // spaceDesc.space = 0;
+    // spaceDesc.rangeDescs = descriptorRanges;
+    // spaceDesc.rangeDescCount = std::size(descriptorRanges);
+    // spaceDesc.offsetInDescriptorsFromTableStart = 0;
 
     RTPSODesc rtpsoDesc{};
-    rtpsoDesc.shaderModules = shaderModules;
-    rtpsoDesc.shaderModulesCount = std::size(shaderModules);
+    // rtpsoDesc.shaderModules = shaderModules;
+    // rtpsoDesc.shaderModulesCount = std::size(shaderModules);
     rtpsoDesc.records = records;
     rtpsoDesc.recordsCount = std::size(records);
-    rtpsoDesc.spacesDescs = &spaceDesc;
-    rtpsoDesc.spacesCount = 1;
+    // rtpsoDesc.spacesDescs = &spaceDesc;
+    // rtpsoDesc.spacesCount = 1;
     rtpsoDesc.maxTraceRecursionDepth = 1;
     rtpsoDesc.maxPayloadSizeInBytes = 32;
     rtpsoDesc.maxAttributeSizeInBytes = 32;
     rtpsoDesc.debugName = "RTPSO";
-    RTPSO* pso = m_RHI->CreateRTPSO(rtpsoDesc);
+    RTPSO* pso = m_RHI->CreateSCARRTPSO(smSource.data(), smSource.size(), rtpsoDesc);
 
     CommandList* rtpsoCMD = m_RHI->AllocateCommandList("RTPSO CMD");
     rtpsoCMD->BuildRTPSO(pso);
