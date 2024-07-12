@@ -1,5 +1,7 @@
 #include "Math3DVectorFunctions.h"
 
+#include <cmath>
+
 namespace Math3D {
     /// FLOAT3 OPS
     Float3 operator*(const Float3 &lh, float rh) noexcept {

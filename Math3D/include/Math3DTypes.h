@@ -1,6 +1,8 @@
 #pragma once
 
 #include "Math3DHelpers.h"
+#include <cstddef>
+#include <cstdint>
 
 namespace Math3D {
     IFDX(using namespace DirectX);
@@ -8,7 +10,7 @@ namespace Math3D {
     union Float1 {
         float values[1];
         IFAPPLE(simd::float1 simd);
-        DirectX::XMFLOAT3 simd;
+        IFDX(DirectX::XMFLOAT3 simd);
     };
 
     union Float2 {
