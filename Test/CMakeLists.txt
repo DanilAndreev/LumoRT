@@ -8,6 +8,9 @@ set(Files
         FrameDebuggerIntegration.h
         Application.cpp
         Application.h
+        Utils.h
+        ApplicationRT.cpp
+        ApplicationRT.h
 )
 
 add_executable(Test main.cpp ${Files})
