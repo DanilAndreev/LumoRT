@@ -1,7 +1,8 @@
 #include "Application.h"
+#include "ApplicationRT.h"
 
 int main() {
-    Application app;
+    ApplicationRT app;
     app.Init();
     app.Logic();
     app.Release();
