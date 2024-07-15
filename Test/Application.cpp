@@ -95,8 +95,15 @@ void Application::Logic() noexcept {
 
     // RDOCIntegration::StartCapture();
 
+    //TODO: unify this commands order
+#ifdef EXAMPLE_API_VULKAN
+    cmd->SetHeap(heap, nullptr);
+    cmd->SetComputePSO(pso);
+#else
     cmd->SetComputePSO(pso);
     cmd->SetHeap(heap, nullptr);
+#endif
+
     cmd->Dispatch({1, 1, 1});
 
     m_RHI->SubmitCommandList(cmd);
