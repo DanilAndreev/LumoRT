@@ -52,7 +52,7 @@ if __name__ == "__main__":
     compileHelper = PSOCompileHelper(path.abspath(args.compiler_path), args.api)
 
     if args.example_id == "RT":
-        compileHelper.compile(path.join(shaders_dir, "rt", "rt.desc.json"), path.join(out_dir, "testOut.scar"))
+        compileHelper.compile(path.join(shaders_dir, "rt", "rt.desc.json"), path.join(out_dir, "rt.scar"))
     elif args.example_id == "Compute":
         pass
 

@@ -198,7 +198,7 @@ void ApplicationRT::Logic() noexcept {
 
     // -------------------------------------------------------------------------------------------------------------------------------------------
 
-    std::ifstream smSourceFile("rt/out.scar", std::ios::binary | std::ios::ate);
+    std::ifstream smSourceFile("rt.scar", std::ios::binary | std::ios::ate);
     assert(smSourceFile.is_open());
     auto smSource = ReadBinary(smSourceFile);
     smSourceFile.close();
