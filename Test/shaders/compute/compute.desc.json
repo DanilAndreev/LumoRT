@@ -1,0 +1,33 @@
+{
+  "psoType": "Compute",
+  "rootSignature": {
+    "spacesDescs": [
+      {
+        "space": 0,
+        "offsetInDescriptorsFromTableStart": 0,
+        "rangeDescs": [
+          {
+            "rangeType": "UAV",
+            "baseRegisterSlot": 0,
+            "descriptorsCount": 2
+          }
+        ]
+      },
+      {
+        "space": 1,
+        "offsetInDescriptorsFromTableStart": 4,
+        "rangeDescs": [
+          {
+            "rangeType": "UAV",
+            "baseRegisterSlot": 1,
+            "descriptorsCount": 1
+          }
+        ]
+      }
+    ]
+  },
+  "computeSettings": {
+    "entrypoint": "main",
+    "shaderSourceFilepath": "compute.hlsl"
+  }
+}

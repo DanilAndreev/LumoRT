@@ -50,7 +50,8 @@ if __name__ == "__main__":
         if args.example_id == "RT":
             compileHelper.compile(path.join(shaders_dir, "rt", "rt.desc.json"), path.join(out_dir, "rt.scar"))
         elif args.example_id == "Compute":
-            compileHelper.compile(path.join(shaders_dir, "compute", "compute.hlsl"), path.join(out_dir, "compute.scar"))
+            compileHelper.compile(path.join(shaders_dir, "compute", "compute.desc.json"),
+                                  path.join(out_dir, "compute.scar"))
 
     except Exception as e:
         print(str(e), file=sys.stderr)
