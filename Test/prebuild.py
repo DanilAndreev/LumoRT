@@ -37,6 +37,8 @@ if __name__ == "__main__":
     parser.add_argument("--compiler-path", required=True)
     parser.add_argument("--api", required=True, choices=["D3D12", "Vulkan", "Metal"])
     parser.add_argument("--example-id", required=True, choices=["RT", "Compute"])
+    parser.add_argument("--out-dir", default="./", choices=["RT", "Compute"])
+
 
     try:
         args = parser.parse_args()
@@ -44,5 +46,13 @@ if __name__ == "__main__":
         print(str(e), file=sys.stderr)
         exit(-1)
 
+    shaders_dir = path.abspath(path.join(path.dirname(__file__), "shaders"))
+    out_dir = path.abspath(args.out_dir)
+
     compileHelper = PSOCompileHelper(path.abspath(args.compiler_path), args.api)
-    compileHelper.compile("rt.desc.json", "testOut.scar")
+
+    if args.example_id == "RT":
+        compileHelper.compile(path.join(shaders_dir, "rt", "rt.desc.json"), path.join(out_dir, "testOut.scar"))
+    elif args.example_id == "Compute":
+        pass
+
