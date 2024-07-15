@@ -42,17 +42,16 @@ if __name__ == "__main__":
 
     try:
         args = parser.parse_args()
+        shaders_dir = path.abspath(path.join(path.dirname(__file__), "shaders"))
+        out_dir = path.abspath(args.out_dir)
+
+        compileHelper = PSOCompileHelper(path.abspath(args.compiler_path), args.api)
+
+        if args.example_id == "RT":
+            compileHelper.compile(path.join(shaders_dir, "rt", "rt.desc.json"), path.join(out_dir, "rt.scar"))
+        elif args.example_id == "Compute":
+            compileHelper.compile(path.join(shaders_dir, "compute", "compute.hlsl"), path.join(out_dir, "compute.scar"))
+
     except Exception as e:
         print(str(e), file=sys.stderr)
         exit(-1)
-
-    shaders_dir = path.abspath(path.join(path.dirname(__file__), "shaders"))
-    out_dir = path.abspath(args.out_dir)
-
-    compileHelper = PSOCompileHelper(path.abspath(args.compiler_path), args.api)
-
-    if args.example_id == "RT":
-        compileHelper.compile(path.join(shaders_dir, "rt", "rt.desc.json"), path.join(out_dir, "rt.scar"))
-    elif args.example_id == "Compute":
-        pass
-
