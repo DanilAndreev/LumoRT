@@ -8,6 +8,22 @@
 ```bash
 git clone git@github.com:DanilAndreev/LumoRT.git --recurse-submodules
 cd LumoRT
-cmake -G "Visual Studio 17 2022" -S Test -B build
+cmake -G "Visual Studio 17 2022" -S Test -B build [EXAMPLE SETTINGS DEFINES]
 cmake --build build --target Test --config Debug
 ```
+
+### Example settings
+> Attention: for now D3D12 is just one stable backend. It is enabled by default.
+#### Ray Tracing
+Add following to ```[EXAMPLE SETTINGS DEFINES]``` section:
+```
+-DEXAMPLE_ID:STRING=RT
+```
+Example sources: ```Test/Application.cpp```
+
+#### Compute
+Add following to ```[EXAMPLE SETTINGS DEFINES]``` section:
+```
+-DEXAMPLE_ID:STRING=Compute
+```
+Example sources: ```Test/ApplicationRT.cpp```
