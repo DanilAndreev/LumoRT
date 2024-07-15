@@ -33,3 +33,16 @@ else()
     target_link_libraries(Test PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/NsightGraphicsSDK/lib/x64/NGFX_Injection.lib)
     target_include_directories(Test PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/NsightGraphicsSDK/include)
 endif()
+
+#add_custom_command(TARGET Test POST_BUILD
+#        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_RUNTIME_DLLS:Test> $<TARGET_FILE_DIR:Test>
+#        COMMAND_EXPAND_LISTS
+#)
+
+find_package(Python3 REQUIRED)
+
+add_dependencies(Test SCAR)
+add_custom_command(TARGET Test POST_BUILD
+        COMMAND ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/prebuild.py --compiler-path $<TARGET_FILE:SCAR> --api D3D12 --example-id RT --out-dir $<TARGET_FILE_DIR:Test>
+        COMMAND_EXPAND_LISTS
+)

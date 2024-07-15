@@ -37,7 +37,7 @@ if __name__ == "__main__":
     parser.add_argument("--compiler-path", required=True)
     parser.add_argument("--api", required=True, choices=["D3D12", "Vulkan", "Metal"])
     parser.add_argument("--example-id", required=True, choices=["RT", "Compute"])
-    parser.add_argument("--out-dir", default="./", choices=["RT", "Compute"])
+    parser.add_argument("--out-dir", default="./")
 
 
     try:
