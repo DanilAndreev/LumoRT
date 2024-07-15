@@ -19,11 +19,11 @@ Add following to ```[EXAMPLE SETTINGS DEFINES]``` section:
 ```
 -DEXAMPLE_ID:STRING=RT
 ```
-Example sources: ```Test/Application.cpp```
+Example sources: ```Test/Application.cpp```, ```shaders/compute```
 
 #### Compute
 Add following to ```[EXAMPLE SETTINGS DEFINES]``` section:
 ```
 -DEXAMPLE_ID:STRING=Compute
 ```
-Example sources: ```Test/ApplicationRT.cpp```
+Example sources: ```Test/ApplicationRT.cpp```, ```shaders/rt```
