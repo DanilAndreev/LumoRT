@@ -33,9 +33,9 @@ static SceneConstantBuffer CreateCameraConstants() noexcept {
     return result;
 }
 
-void ApplicationRT::Init() noexcept {
+void ApplicationRT::Init(RHINO::BackendAPI api) noexcept {
     using namespace RHINO;
-    m_RHI = CreateRHINO(BackendAPI::D3D12);
+    m_RHI = CreateRHINO(api);
     m_RHI->Initialize();
 }
 

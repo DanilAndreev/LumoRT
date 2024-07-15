@@ -10,9 +10,9 @@
 #include <RaytracingHlslCompat.hlsli>
 #include "Utils.h"
 
-void Application::Init() noexcept {
+void Application::Init(RHINO::BackendAPI api) noexcept {
     using namespace RHINO;
-    m_RHI = CreateRHINO(BackendAPI::D3D12);
+    m_RHI = CreateRHINO(api);
     m_RHI->Initialize();
 }
 

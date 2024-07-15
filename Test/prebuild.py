@@ -6,8 +6,8 @@ from subprocess import Popen, PIPE
 
 API_TO_LANG = {
     "D3D12": "DXIL",
-    "Vulkan": "SPIRV",
-    "Metal": "MetalLib"
+    "VULKAN": "SPIRV",
+    "METAL": "MetalLib"
 }
 
 

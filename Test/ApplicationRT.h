@@ -4,7 +4,7 @@
 
 class ApplicationRT {
 public:
-    void Init() noexcept;
+    void Init(RHINO::BackendAPI api) noexcept;
     void Logic() noexcept;
     void Release() noexcept;
 protected:

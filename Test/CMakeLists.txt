@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.25)
 project(Test)
 
+set(EXAMPLE_ID "RT" CACHE STRING "Example identifier. Available: RT / Compute")
+set(EXAMPLE_API "D3D12" CACHE STRING "Example identifier. Available: D3D12 / VULKAN / METAL")
+
 set(CMAKE_CXX_STANDARD 20)
 
 set(Files
@@ -14,6 +17,8 @@ set(Files
 )
 
 add_executable(Test main.cpp ${Files})
+
+target_compile_definitions(Test PUBLIC EXAMPLE_ID_${EXAMPLE_ID}=1 EXAMPLE_API_${EXAMPLE_API}=1)
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../RHINO RHINO)
 target_link_libraries(Test PUBLIC RHINO)
@@ -43,6 +48,6 @@ find_package(Python3 REQUIRED)
 
 add_dependencies(Test SCAR)
 add_custom_command(TARGET Test POST_BUILD
-        COMMAND ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/prebuild.py --compiler-path $<TARGET_FILE:SCAR> --api D3D12 --example-id RT --out-dir $<TARGET_FILE_DIR:Test>
+        COMMAND ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/prebuild.py --compiler-path $<TARGET_FILE:SCAR> --api ${EXAMPLE_API} --example-id ${EXAMPLE_ID} --out-dir $<TARGET_FILE_DIR:Test>
         COMMAND_EXPAND_LISTS
 )
