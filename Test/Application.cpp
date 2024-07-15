@@ -144,10 +144,12 @@ void Application::Logic() noexcept {
     uploadCMD->CopyBuffer(vertexStaging, vertexBuffer, 0, 0, sizeof(vertices));
     uploadCMD->CopyBuffer(indexStaging, indexBuffer, 0, 0, sizeof(indices));
     uploadCMD->CopyBuffer(cameraConstantStaging, cameraConstantBuffer, 0, 0, sizeof(sceneConstantPayload));
-    m_RHI->SubmitCommandList(uploadCMD, 0, nullptr, nullptr);
-    m_RHI->ReleaseCommandList(uploadCMD);
-    m_RHI->ReleaseBuffer(vertexStaging);
-    m_RHI->ReleaseBuffer(indexStaging);
+    m_RHI->SubmitCommandList(uploadCMD);
+    m_RHI->SignalFromQueue(semaphore, 1);
+    m_RHI->SemaphoreWaitFromHost(semaphore, 1, ~0);
+    uploadCMD->Release();
+    vertexStaging->Release();
+    indexStaging->Release();
 
     WriteBufferDescriptorDesc cbDescriptorDesc{};
     cbDescriptorDesc.buffer = cameraConstantBuffer;
@@ -174,9 +176,11 @@ void Application::Logic() noexcept {
 
     CommandList* blasCMD = m_RHI->AllocateCommandList("BLAS CMD");
     BLAS* blas = blasCMD->BuildBLAS(blasDesc, blasScratch, 0, "BLAS");
-    m_RHI->SubmitCommandList(blasCMD, 0, nullptr, nullptr);
-    m_RHI->ReleaseCommandList(blasCMD);
-    m_RHI->ReleaseBuffer(blasScratch);
+    m_RHI->SubmitCommandList(blasCMD);
+    m_RHI->SignalFromQueue(semaphore, 2);
+    m_RHI->SemaphoreWaitFromHost(semaphore, 2, ~0);
+    blasCMD->Release();
+    blasScratch->Release();
 
     // -------------------------------------------------------------------------------------------------------------------------------------------
     BLASInstanceDesc blasInstanceDesc{};
@@ -193,9 +197,11 @@ void Application::Logic() noexcept {
 
     CommandList* tlasCMD = m_RHI->AllocateCommandList("TLAS CMD");
     TLAS* tlas = tlasCMD->BuildTLAS(tlasDesc, tlasScratch, 0, "TLAS");
-    m_RHI->SubmitCommandList(tlasCMD, 0, nullptr, nullptr);
-    m_RHI->ReleaseCommandList(tlasCMD);
-    m_RHI->ReleaseBuffer(tlasScratch);
+    m_RHI->SubmitCommandList(tlasCMD);
+    m_RHI->SignalFromQueue(semaphore, 3);
+    m_RHI->SemaphoreWaitFromHost(semaphore, 3, ~0);
+    tlasCMD->Release();
+    tlasScratch->Release();
 
     WriteTLASDescriptorDesc tlasDescriptorDesc{};
     tlasDescriptorDesc.tlas = tlas;
@@ -268,8 +274,10 @@ void Application::Logic() noexcept {
 
     CommandList* rtpsoCMD = m_RHI->AllocateCommandList("RTPSO CMD");
     rtpsoCMD->BuildRTPSO(pso);
-    m_RHI->SubmitCommandList(rtpsoCMD, 0, nullptr, nullptr);
-    m_RHI->ReleaseCommandList(rtpsoCMD);
+    m_RHI->SubmitCommandList(rtpsoCMD);
+    m_RHI->SignalFromQueue(semaphore, 4);
+    m_RHI->SemaphoreWaitFromHost(semaphore, 4, ~0);
+    rtpsoCMD->Release();
 
     // -------------------------------------------------------------------------------------------------------------------------------------------
     CommandList* traceCMD = m_RHI->AllocateCommandList("TraceCMD");
@@ -285,8 +293,10 @@ void Application::Logic() noexcept {
     dispatchRaysDesc.samplerHeap = nullptr;
     traceCMD->DispatchRays(dispatchRaysDesc);
 
-    m_RHI->SubmitCommandList(traceCMD, 0, nullptr, nullptr);
-    // m_RHI->ReleaseCommandList(traceCMD);
+    m_RHI->SubmitCommandList(traceCMD);
+    m_RHI->SignalFromQueue(semaphore, 5);
+    m_RHI->SemaphoreWaitFromHost(semaphore, 5, ~0);
+    traceCMD->Release();
 
     /*
     Buffer* bufCBV = m_RHI->CreateBuffer(64, ResourceHeapType::Default, ResourceUsage::ConstantBuffer, 0, "ConstantB");
