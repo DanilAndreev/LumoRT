@@ -1,7 +1,7 @@
 # LumoRT - Rendering Engine with Ray Tracing support
 > For now - a sandbox for development and testing RHINO render interface
 
-## RHINO
+## RHINO render interface
 > Look for README.md in ```/RHINO``` dir  
 
 ## Building
