@@ -48,10 +48,14 @@ if __name__ == "__main__":
         compileHelper = PSOCompileHelper(path.abspath(args.compiler_path), args.api)
 
         if args.example_id == "RT":
+            print("Compiling RT archive")
             compileHelper.compile(path.join(shaders_dir, "rt", "rt.desc.json"), path.join(out_dir, "rt.scar"))
+            print("Done compiling RT archive" + path.join(out_dir, "rt.scar"))
         elif args.example_id == "Compute":
+            print("Compiling Compute archive")
             compileHelper.compile(path.join(shaders_dir, "compute", "compute.desc.json"),
                                   path.join(out_dir, "compute.scar"))
+            print("Done compiling Compute archive: " + path.join(out_dir, "compute.scar"))
 
     except Exception as e:
         print(str(e), file=sys.stderr)
