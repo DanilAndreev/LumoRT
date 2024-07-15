@@ -35,6 +35,8 @@ void RDOCIntegration::LoadRDOCAPI() {
 }
 
 void RDOCIntegration::LoadNGFX() {
+#ifdef USE_NGFX
+
 // Injecting into a process follows this basic flow:
     //
     // 1) Enumerating/detecting the installations installed on the machine
@@ -123,6 +125,7 @@ void RDOCIntegration::LoadNGFX() {
         return;
     }
     ms_NGFXLoaded = true;
+#endif // USE_NGFX
 }
 
 void RDOCIntegration::StartCapture() {
@@ -147,10 +150,12 @@ void RDOCIntegration::StartCapture() {
     }
 #endif
 
+#ifdef USE_NGFX
     LoadNGFX();
     if (ms_NGFXLoaded) {
         NGFX_Injection_ExecuteActivityCommand();
     }
+#endif // USE_NGFX
 }
 
 void RDOCIntegration::EndCapture() {
