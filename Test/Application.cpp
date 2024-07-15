@@ -10,6 +10,17 @@
 #include <RaytracingHlslCompat.hlsli>
 #include "Utils.h"
 
+template<class T>
+void PrintVec(std::vector<T> vec, const std::string& separator = " ") {
+    for (size_t i = 0; i < vec.size(); ++i) {
+        std::cout << vec[i];
+        if (i + 1 < vec.size()) {
+            std::cout << separator;
+        }
+    }
+    std::cout << std::endl;
+}
+
 void Application::Init(RHINO::BackendAPI api) noexcept {
     using namespace RHINO;
     m_RHI = CreateRHINO(api);
@@ -52,7 +63,7 @@ void Application::Logic() noexcept {
     desc.offsetInHeap = 5;
     heap->WriteUAV(desc);
 
-    std::ifstream shaderFile{"out.scar", std::ios::binary | std::ios::ate};
+    std::ifstream shaderFile{"compute.scar", std::ios::binary | std::ios::ate};
     assert(shaderFile.is_open());
     auto bytecode = ReadBinary(shaderFile);
     shaderFile.close();
@@ -84,8 +95,8 @@ void Application::Logic() noexcept {
 
     // RDOCIntegration::StartCapture();
 
-    cmd->SetHeap(heap, nullptr);
     cmd->SetComputePSO(pso);
+    cmd->SetHeap(heap, nullptr);
     cmd->Dispatch({1, 1, 1});
 
     m_RHI->SubmitCommandList(cmd);
@@ -113,6 +124,13 @@ void Application::Logic() noexcept {
     memcpy(vdata1.data(), data1, sizeof(int) * 64);
     memcpy(vdata2.data(), data2, sizeof(int) * 64);
     memcpy(vdata3.data(), data3, sizeof(int) * 64);
+
+    std::cout << "UAV1 result data: ";
+    PrintVec(vdata1);
+    std::cout << "UAV2 result data: ";
+    PrintVec(vdata2);
+    std::cout << "UAV3 result data: ";
+    PrintVec(vdata3);
 
     pso->Release();
     heap->Release();
