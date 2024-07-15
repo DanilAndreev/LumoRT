@@ -1,0 +1,38 @@
+{
+  "psoType": "Library",
+  "rootSignature": {
+    "spacesDescs": [
+      {
+        "space": 0,
+        "offsetInDescriptorsFromTableStart": 0,
+        "rangeDescs": [
+          {
+            "rangeType": "SRV",
+            "baseRegisterSlot": 0,
+            "descriptorsCount": 1
+          },
+          {
+            "rangeType": "UAV",
+            "baseRegisterSlot": 1,
+            "descriptorsCount": 1
+          },
+          {
+            "rangeType": "CBV",
+            "baseRegisterSlot": 2,
+            "descriptorsCount": 1
+          }
+        ]
+      }
+    ]
+  },
+  "librarySettings": {
+    "entrypoints": [
+      "MyRaygenShader",
+      "MyMissShader",
+      "MyClosestHitShader"
+    ],
+    "shaderSourceFilepath": "rt.hlsl",
+    "maxAttributeSizeInBytes": 32,
+    "maxPayloadSizeInBytes": 32
+  }
+}
