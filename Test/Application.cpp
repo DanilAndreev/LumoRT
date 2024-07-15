@@ -93,8 +93,6 @@ void Application::Logic() noexcept {
 
     ComputePSO* pso = m_RHI->CompileSCARComputePSO(bytecode.data(), bytecode.size(), "TestCPSO");
 
-    // RDOCIntegration::StartCapture();
-
     //TODO: unify this commands order
 #ifdef EXAMPLE_API_VULKAN
     cmd->SetHeap(heap, nullptr);
