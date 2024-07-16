@@ -7,7 +7,6 @@
 
 #include "FrameDebuggerIntegration.h"
 
-#include <RaytracingHlslCompat.hlsli>
 #include "Utils.h"
 
 template<class T>
@@ -30,7 +29,7 @@ void Application::Init(RHINO::BackendAPI api) noexcept {
 void Application::Logic() noexcept {
     using namespace Math3D;
     using namespace RHINO;
-    RDOCIntegration::StartCapture();
+    // RDOCIntegration::StartCapture();
 
     DescriptorHeap* heap = m_RHI->CreateDescriptorHeap(DescriptorHeapType::SRV_CBV_UAV, 100, "Heap");
     CommandList* cmd = m_RHI->AllocateCommandList("CMD");
@@ -147,7 +146,7 @@ void Application::Logic() noexcept {
     destUAV2->Release();
     destUAV3->Release();
 
-    RDOCIntegration::EndCapture();
+    // RDOCIntegration::EndCapture();
 }
 void Application::Release() noexcept {
     using namespace RHINO;

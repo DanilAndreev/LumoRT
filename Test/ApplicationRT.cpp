@@ -1,3 +1,5 @@
+#ifdef WIN32
+
 #include <cassert>
 #include <fstream>
 #include <iostream>
@@ -293,3 +295,5 @@ void ApplicationRT::Release() noexcept {
     m_RHI->Release();
     delete m_RHI;
 }
+
+#endif // WIN32

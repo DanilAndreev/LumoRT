@@ -1,5 +1,7 @@
 #pragma once
 
+#ifdef WIN32
+
 #include <RHINO.h>
 
 class ApplicationRT {
@@ -11,3 +13,5 @@ protected:
     RHINO::RHINOInterface* m_RHI = nullptr;
 
 };
+
+#endif // WIN32
