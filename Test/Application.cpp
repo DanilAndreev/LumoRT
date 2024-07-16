@@ -93,12 +93,12 @@ void Application::Logic() noexcept {
     ComputePSO* pso = m_RHI->CompileSCARComputePSO(bytecode.data(), bytecode.size(), "TestCPSO");
 
     //TODO: unify this commands order
-#ifdef EXAMPLE_API_VULKAN
-    cmd->SetHeap(heap, nullptr);
+#if EXAMPLE_API_D3D12
     cmd->SetComputePSO(pso);
+    cmd->SetHeap(heap, nullptr);
 #else
-    cmd->SetComputePSO(pso);
     cmd->SetHeap(heap, nullptr);
+    cmd->SetComputePSO(pso);
 #endif
 
     cmd->Dispatch({1, 1, 1});
