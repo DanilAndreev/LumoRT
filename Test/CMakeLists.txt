@@ -32,7 +32,7 @@ target_link_libraries(Test PUBLIC RHINO)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../Math3D Math3D)
 target_link_libraries(Test PUBLIC Math3D)
 
-target_include_directories(Test PUBLIC shaders/rt)
+target_include_directories(Test PUBLIC shaders)
 
 if(APPLE)
 else()
