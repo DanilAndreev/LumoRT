@@ -33,6 +33,7 @@ void Application::Logic() noexcept {
 
     DescriptorHeap* heap = m_RHI->CreateDescriptorHeap(DescriptorHeapType::SRV_CBV_UAV, 100, "Heap");
     CommandList* cmd = m_RHI->AllocateCommandList("CMD");
+    Semaphore* semaphore = m_RHI->CreateSyncSemaphore(0);
 
     Buffer* bufCBV = m_RHI->CreateBuffer(64, ResourceHeapType::Default, ResourceUsage::ConstantBuffer, 0, "ConstantB");
     Buffer* destUAV1 = m_RHI->CreateBuffer(sizeof(int) * 64, ResourceHeapType::Default, ResourceUsage::UnorderedAccess | ResourceUsage::CopySource, 0, "DestUAV1");
@@ -99,29 +100,26 @@ void Application::Logic() noexcept {
 
     ComputePSO* pso = m_RHI->CompileSCARComputePSO(bytecode.data(), bytecode.size(), "TestCPSO");
 
-    //TODO: unify this commands order
-#if EXAMPLE_API_D3D12
-    cmd->SetComputePSO(pso);
-    cmd->SetHeap(heap, nullptr);
-#else
     cmd->SetRootSignature(rootSignature);
     cmd->SetHeap(heap, nullptr);
     cmd->SetComputePSO(pso);
-#endif
 
     cmd->Dispatch({1, 1, 1});
 
     m_RHI->SubmitCommandList(cmd);
+    m_RHI->SignalFromQueue(semaphore, 1);
     cmd->Release();
 
     CommandList* cmd2 = m_RHI->AllocateCommandList("CMDList");
     cmd2->CopyBuffer(destUAV1, rbkUAV1, 0, 0, sizeof(int) * 64);
     cmd2->CopyBuffer(destUAV2, rbkUAV2, 0, 0, sizeof(int) * 64);
     cmd2->CopyBuffer(destUAV3, rbkUAV3, 0, 0, sizeof(int) * 64);
+    m_RHI->SemaphoreWaitFromQueue(semaphore, 1);
     m_RHI->SubmitCommandList(cmd2);
+    m_RHI->SignalFromQueue(semaphore, 2);
     cmd2->Release();
 
-
+    m_RHI->SemaphoreWaitFromHost(semaphore, 2, ~0);
     auto* data1 = static_cast<int*>(m_RHI->MapMemory(rbkUAV1, 0, sizeof(int) * 64));
     auto* data2 = static_cast<int*>(m_RHI->MapMemory(rbkUAV2, 0, sizeof(int) * 64));
     auto* data3 = static_cast<int*>(m_RHI->MapMemory(rbkUAV3, 0, sizeof(int) * 64));
