@@ -42,7 +42,7 @@ void ApplicationRT::Init(RHINO::BackendAPI api) noexcept {
 }
 
 void ApplicationRT::Logic() noexcept {
-        using namespace Math3D;
+    using namespace Math3D;
     using namespace RHINO;
     RDOCIntegration::StartCapture();
 
@@ -200,12 +200,39 @@ void ApplicationRT::Logic() noexcept {
 
     // -------------------------------------------------------------------------------------------------------------------------------------------
 
+    DescriptorRangeDesc descriptorRangeSRV{};
+    descriptorRangeSRV.descriptorsCount = 1;
+    descriptorRangeSRV.rangeType = DescriptorRangeType::SRV;
+    descriptorRangeSRV.baseRegisterSlot = 0;
+
+    DescriptorRangeDesc descriptorRangeUAV{};
+    descriptorRangeUAV.descriptorsCount = 1;
+    descriptorRangeUAV.rangeType = DescriptorRangeType::UAV;
+    descriptorRangeUAV.baseRegisterSlot = 1;
+
+    DescriptorRangeDesc descriptorRangeCBV{};
+    descriptorRangeCBV.descriptorsCount = 1;
+    descriptorRangeCBV.rangeType = DescriptorRangeType::CBV;
+    descriptorRangeCBV.baseRegisterSlot = 2;
+
+    DescriptorRangeDesc descriptorRanges[] = {descriptorRangeSRV, descriptorRangeUAV, descriptorRangeCBV};
+
+    DescriptorSpaceDesc spaceDesc{};
+    spaceDesc.space = 0;
+    spaceDesc.rangeDescs = descriptorRanges;
+    spaceDesc.rangeDescCount = std::size(descriptorRanges);
+    spaceDesc.offsetInDescriptorsFromTableStart = 0;
+
+    RootSignatureDesc rootSignatureDesc{};
+    rootSignatureDesc.spacesCount = 1;
+    rootSignatureDesc.spacesDescs = &spaceDesc;
+    rootSignatureDesc.debugName = "RootSignature";
+    RootSignature* rootSignature = m_RHI->SerializeRootSignature(rootSignatureDesc);
+
     std::ifstream smSourceFile("rt.scar", std::ios::binary | std::ios::ate);
     assert(smSourceFile.is_open());
     auto smSource = ReadBinary(smSourceFile);
     smSourceFile.close();
-
-
 
     // ShaderModule raygenSM{smSource.size(), smSource.data(), "MyRaygenShader"};
     // ShaderModule missSM{smSource.size(), smSource.data(), "MyMissShader"};
@@ -226,36 +253,12 @@ void ApplicationRT::Logic() noexcept {
     // records[2].hitGroup.anyHitShaderIndex = 3;
     // records[2].hitGroup.intersectionShaderIndex = 4;
 
-    // DescriptorRangeDesc descriptorRangeSRV{};
-    // descriptorRangeSRV.descriptorsCount = 1;
-    // descriptorRangeSRV.rangeType = DescriptorRangeType::SRV;
-    // descriptorRangeSRV.baseRegisterSlot = 0;
-    //
-    // DescriptorRangeDesc descriptorRangeUAV{};
-    // descriptorRangeUAV.descriptorsCount = 1;
-    // descriptorRangeUAV.rangeType = DescriptorRangeType::UAV;
-    // descriptorRangeUAV.baseRegisterSlot = 1;
-    //
-    // DescriptorRangeDesc descriptorRangeCBV{};
-    // descriptorRangeCBV.descriptorsCount = 1;
-    // descriptorRangeCBV.rangeType = DescriptorRangeType::CBV;
-    // descriptorRangeCBV.baseRegisterSlot = 2;
-    //
-    // DescriptorRangeDesc descriptorRanges[] = {descriptorRangeSRV, descriptorRangeUAV, descriptorRangeCBV};
-    //
-    // DescriptorSpaceDesc spaceDesc{};
-    // spaceDesc.space = 0;
-    // spaceDesc.rangeDescs = descriptorRanges;
-    // spaceDesc.rangeDescCount = std::size(descriptorRanges);
-    // spaceDesc.offsetInDescriptorsFromTableStart = 0;
-
     RTPSODesc rtpsoDesc{};
     // rtpsoDesc.shaderModules = shaderModules;
     // rtpsoDesc.shaderModulesCount = std::size(shaderModules);
+    rtpsoDesc.rootSignature = rootSignature;
     rtpsoDesc.records = records;
     rtpsoDesc.recordsCount = std::size(records);
-    // rtpsoDesc.spacesDescs = &spaceDesc;
-    // rtpsoDesc.spacesCount = 1;
     rtpsoDesc.maxTraceRecursionDepth = 1;
     rtpsoDesc.maxPayloadSizeInBytes = 32;
     rtpsoDesc.maxAttributeSizeInBytes = 32;
@@ -271,6 +274,8 @@ void ApplicationRT::Logic() noexcept {
 
     // -------------------------------------------------------------------------------------------------------------------------------------------
     CommandList* traceCMD = m_RHI->AllocateCommandList("TraceCMD");
+
+    traceCMD->SetRootSignature(rootSignature);
 
     DispatchRaysDesc dispatchRaysDesc{};
     dispatchRaysDesc.width = BACKBUFFER_WIDTH;
