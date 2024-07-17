@@ -3,6 +3,7 @@ import sys as sys
 from os import path
 from argparse import ArgumentParser
 from subprocess import Popen, PIPE
+import base64 as b64
 
 API_TO_LANG = {
     "D3D12": "DXIL",
@@ -21,7 +22,6 @@ class PSOCompileHelper:
             os.makedirs(path.dirname(out_filepath), exist_ok=True)
 
         compile_args = [desc_filepath]
-        compile_args += ["-o", out_filepath]
         compile_args += ["--O0"]
         compile_args += ["-t", self.lang]
 
@@ -30,6 +30,9 @@ class PSOCompileHelper:
         process.wait()
         if process.returncode != 0:
             raise Exception(f"Failed to compile PSO. Compiler exited with error:\n{error.decode()}")
+
+        with open(out_filepath, "wb") as out_file:
+            out_file.write(b64.b64decode(output))
 
 
 if __name__ == "__main__":

@@ -18,7 +18,7 @@ void ApplicationFractal::Init(RHINO::BackendAPI api) noexcept {
 }
 
 void ApplicationFractal::Logic() noexcept {
-    RDOCIntegration::StartCapture();
+    // RDOCIntegration::StartCapture();
 
     using namespace RHINO;
     DescriptorHeap* heap = m_RHI->CreateDescriptorHeap(DescriptorHeapType::SRV_CBV_UAV, 100, "MeinDescriptorHeap");
@@ -70,7 +70,7 @@ void ApplicationFractal::Logic() noexcept {
 
     m_RHI->SemaphoreWaitFromHost(semaphore, 1, ~0);
 
-    RDOCIntegration::EndCapture();
+    // RDOCIntegration::EndCapture();
 }
 
 void ApplicationFractal::Release() noexcept {
