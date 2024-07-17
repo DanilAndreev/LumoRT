@@ -18,7 +18,7 @@ void ApplicationFractal::Init(RHINO::BackendAPI api) noexcept {
 }
 
 void ApplicationFractal::Logic() noexcept {
-    // RDOCIntegration::StartCapture();
+    RDOCIntegration::StartCapture();
 
     using namespace RHINO;
     DescriptorHeap* heap = m_RHI->CreateDescriptorHeap(DescriptorHeapType::SRV_CBV_UAV, 100, "MeinDescriptorHeap");
@@ -27,7 +27,7 @@ void ApplicationFractal::Logic() noexcept {
     Buffer* constatnsStaging = m_RHI->CreateBuffer(sizeof(FractalSettings), ResourceHeapType::Upload, ResourceUsage::CopySource, 0, "ConstantsStaging");
     auto* mapped = static_cast<FractalSettings*>(m_RHI->MapMemory(constatnsStaging, 0, sizeof(FractalSettings)));
     assert(mapped);
-    mapped->leanX = 1.0f;
+    mapped->leanX = 0.05f;
     mapped->leanY = 1.0f;
     mapped->moveX = -static_cast<float>(TEXTURE_SIZE_X) / 2;
     mapped->moveY = 10.0f;
@@ -35,15 +35,19 @@ void ApplicationFractal::Logic() noexcept {
 
 
     Texture2D* color0 = m_RHI->CreateTexture2D(Dim3D{TEXTURE_SIZE_X, TEXTURE_SIZE_Y, 1}, 1, TextureFormat::R32_FLOAT, ResourceUsage::UnorderedAccess | ResourceUsage::CopySource, "color0");
+    Texture2D* color1 = m_RHI->CreateTexture2D(Dim3D{64, 64, 1}, 1, TextureFormat::R32_FLOAT, ResourceUsage::UnorderedAccess, "color1");
     Buffer* constants = m_RHI->CreateBuffer(sizeof(FractalSettings), ResourceHeapType::Default, ResourceUsage::ConstantBuffer | ResourceUsage::CopyDest, 0, "Constants");
 
-    heap->WriteUAV(WriteTexture2DDescriptorDesc{color0, 0});
-    heap->WriteCBV(WriteBufferDescriptorDesc{constants, 0, sizeof(FractalSettings), 0, 1});
+    heap->WriteCBV(WriteBufferDescriptorDesc{constants, 0, sizeof(FractalSettings), 0, 0});
+    heap->WriteSRV(WriteTexture2DDescriptorDesc{color0, 1});
+    heap->WriteUAV(WriteTexture2DDescriptorDesc{color0, 2});
+    heap->WriteUAV(WriteTexture2DDescriptorDesc{color1, 3});
 
-    DescriptorRangeDesc space0RangeUAV {DescriptorRangeType::UAV, 0, 1};
-    DescriptorRangeDesc space0RangeCBV {DescriptorRangeType::CBV, 1, 1};
+    DescriptorRangeDesc space0RangeCBV{DescriptorRangeType::CBV, 0, 1};
+    DescriptorRangeDesc space0RangeSRV{DescriptorRangeType::SRV, 1, 1};
+    DescriptorRangeDesc space0RangeUAV{DescriptorRangeType::UAV, 2, 2};
 
-    DescriptorRangeDesc space0ranges[] = {space0RangeUAV, space0RangeCBV};
+    DescriptorRangeDesc space0ranges[] = {space0RangeCBV, space0RangeSRV, space0RangeUAV};
     DescriptorSpaceDesc space0Desc{};
     space0Desc.space = 0;
     space0Desc.offsetInDescriptorsFromTableStart = 0;
@@ -58,6 +62,12 @@ void ApplicationFractal::Logic() noexcept {
     fractalShaderFile.close();
     ComputePSO* fractalPSO = m_RHI->CompileSCARComputePSO(fractalShaderBytecode.data(), fractalShaderBytecode.size(), rootSignature, "FractalComputePSO");
 
+    std::ifstream blitShaderFile{"blit.scar", std::ios::binary | std::ios::ate};
+    assert(blitShaderFile.is_open());
+    auto blitShaderBytecode = ReadBinary(blitShaderFile);
+    blitShaderFile.close();
+    ComputePSO* blitPSO = m_RHI->CompileSCARComputePSO(blitShaderBytecode.data(), blitShaderBytecode.size(), rootSignature, "BlitComputePSO");
+
     CommandList* cmd = m_RHI->AllocateCommandList("CommandList");
     cmd->CopyBuffer(constatnsStaging, constants, 0, 0, sizeof(FractalSettings));
 
@@ -65,12 +75,20 @@ void ApplicationFractal::Logic() noexcept {
     cmd->SetHeap(heap, nullptr);
     cmd->SetComputePSO(fractalPSO);
     cmd->Dispatch({TEXTURE_SIZE_X / EXAMPLE_FRACTAL_THREADGROUP_X, TEXTURE_SIZE_Y / EXAMPLE_FRACTAL_THREADGROUP_Y, 1});
+
+    ResourceBarrierDesc barrier{};
+    barrier.resource = color0;
+    barrier.type = ResourceBarrierType::UAV;
+    cmd->ResourceBarrier(barrier);
+
+    cmd->SetComputePSO(blitPSO);
+    cmd->Dispatch({2, 2, 1});
     m_RHI->SubmitCommandList(cmd);
     m_RHI->SignalFromQueue(semaphore, 1);
 
     m_RHI->SemaphoreWaitFromHost(semaphore, 1, ~0);
 
-    // RDOCIntegration::EndCapture();
+    RDOCIntegration::EndCapture();
 }
 
 void ApplicationFractal::Release() noexcept {

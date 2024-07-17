@@ -63,6 +63,8 @@ if __name__ == "__main__":
             print("Compiling Fractal archive")
             compileHelper.compile(path.join(shaders_dir, "fractal", "fractal.desc.json"),
                                   path.join(out_dir, "fractal.scar"))
+            compileHelper.compile(path.join(shaders_dir, "fractal", "blit.desc.json"),
+                                  path.join(out_dir, "blit.scar"))
             print("Done compiling Fractal archive: " + path.join(out_dir, "fractal.scar"))
 
     except Exception as e:
