@@ -1,11 +1,14 @@
 #include "Application.h"
 #include "ApplicationRT.h"
+#include "ApplicationFractal.h"
 
 int main() {
 #ifdef EXAMPLE_ID_RT
     ApplicationRT app;
 #elif EXAMPLE_ID_Compute
     Application app;
+#elif EXAMPLE_ID_Fractal
+    ApplicationFractal app;
 #else
 #error "Invalid EXAMPLE_ID cmake cache var"
 #endif

@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.25)
 project(Test)
 
-set(EXAMPLE_ID "Compute" CACHE STRING "Example identifier. Available: RT / Compute")
+set(EXAMPLE_ID "Compute" CACHE STRING "Example identifier. Available: RT / Compute / Fractal")
 set(EXAMPLE_API "D3D12" CACHE STRING "Example identifier. Available: D3D12 / VULKAN / METAL")
 
 
@@ -17,6 +17,8 @@ set(Files
         Utils.h
         ApplicationRT.cpp
         ApplicationRT.h
+        ApplicationFractal.cpp
+        ApplicationFractal.h
 )
 
 add_executable(Test main.cpp ${Files})

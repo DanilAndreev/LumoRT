@@ -36,7 +36,7 @@ if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("--compiler-path", required=True)
     parser.add_argument("--api", required=True, choices=["D3D12", "VULKAN", "METAL"])
-    parser.add_argument("--example-id", required=True, choices=["RT", "Compute"])
+    parser.add_argument("--example-id", required=True, choices=["RT", "Compute", "Fractal"])
     parser.add_argument("--out-dir", default="./")
 
 
@@ -56,6 +56,11 @@ if __name__ == "__main__":
             compileHelper.compile(path.join(shaders_dir, "compute", "compute.desc.json"),
                                   path.join(out_dir, "compute.scar"))
             print("Done compiling Compute archive: " + path.join(out_dir, "compute.scar"))
+        elif args.example_id == "Fractal":
+            print("Compiling Fractal archive")
+            compileHelper.compile(path.join(shaders_dir, "fractal", "fractal.desc.json"),
+                                  path.join(out_dir, "fractal.scar"))
+            print("Done compiling Fractal archive: " + path.join(out_dir, "fractal.scar"))
 
     except Exception as e:
         print(str(e), file=sys.stderr)
