@@ -89,16 +89,15 @@ void Application::Logic() noexcept {
      RootSignature* rootSignature = m_RHI->SerializeRootSignature(rootSignatureDesc);
 
 
-    // ComputePSODesc psoDesc{};
-    // psoDesc.CS.entrypoint = "main";
-    // psoDesc.CS.bytecodeSize = bytecode.size();
-    // psoDesc.CS.bytecode = bytecode.data();
-    // psoDesc.debugName = "TestCPSO";
-    // psoDesc.spacesCount = RHINO_ARR_SIZE(spaces);
-    // psoDesc.spacesDescs = spaces;
-    // ComputePSO* pso = m_RHI->CompileComputePSO(psoDesc);
+//     ComputePSODesc psoDesc{};
+//     psoDesc.rootSignature = rootSignature;
+//     psoDesc.CS.entrypoint = "main";
+//     psoDesc.CS.bytecodeSize = bytecode.size();
+//     psoDesc.CS.bytecode = bytecode.data();
+//     psoDesc.debugName = "TestCPSO";
+//     ComputePSO* pso = m_RHI->CompileComputePSO(psoDesc);
 
-    ComputePSO* pso = m_RHI->CompileSCARComputePSO(bytecode.data(), bytecode.size(), rootSignature, "TestCPSO");
+     ComputePSO* pso = m_RHI->CompileSCARComputePSO(bytecode.data(), bytecode.size(), rootSignature, "ComputePSO");
 
     cmd->SetRootSignature(rootSignature);
     cmd->SetHeap(heap, nullptr);

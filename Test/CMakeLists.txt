@@ -25,7 +25,7 @@ target_compile_definitions(Test PUBLIC EXAMPLE_ID_${EXAMPLE_ID}=1 EXAMPLE_API_${
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../RHINO RHINO)
 target_link_libraries(Test PUBLIC RHINO)
-target_link_libraries(Test PUBLIC SCARs)
+# target_link_libraries(Test PUBLIC SCARs)
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../Math3D Math3D)
 target_link_libraries(Test PUBLIC Math3D)
@@ -62,7 +62,7 @@ endif()
 find_package(Python3 REQUIRED)
 
 add_dependencies(Test SCAR)
-add_custom_command(TARGET Test POST_BUILD
-        COMMAND ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/prebuild.py --compiler-path $<TARGET_FILE:SCAR> --api ${EXAMPLE_API} --example-id ${EXAMPLE_ID} --out-dir $<TARGET_FILE_DIR:Test>
-        COMMAND_EXPAND_LISTS
-)
+#add_custom_command(TARGET Test POST_BUILD
+#        COMMAND ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/prebuild.py --compiler-path $<TARGET_FILE:SCAR> --api ${EXAMPLE_API} --example-id ${EXAMPLE_ID} --out-dir $<TARGET_FILE_DIR:Test>
+#        COMMAND_EXPAND_LISTS
+#)
