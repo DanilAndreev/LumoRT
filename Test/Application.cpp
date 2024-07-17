@@ -67,20 +67,27 @@ void Application::Logic() noexcept {
     auto bytecode = ReadBinary(shaderFile);
     shaderFile.close();
 
-    // const DescriptorRangeDesc space0rd[] = {
-    //     DescriptorRangeDesc{DescriptorRangeType::UAV, 0, 2},
-    // };
-    //
-    // const DescriptorRangeDesc space1rd[] = {
-    //     DescriptorRangeDesc{DescriptorRangeType::UAV, 1, 1},
-    // };
-    //
-    // const DescriptorSpaceDesc spaces[] = {
-    //     DescriptorSpaceDesc{0, 0, RHINO_ARR_SIZE(space0rd), space0rd},
-    //     DescriptorSpaceDesc{1, 4, RHINO_ARR_SIZE(space1rd), space1rd},
-    // };
-    //
-    //
+     const DescriptorRangeDesc space0rd[] = {
+         DescriptorRangeDesc{DescriptorRangeType::UAV, 0, 2},
+     };
+
+     const DescriptorRangeDesc space1rd[] = {
+         DescriptorRangeDesc{DescriptorRangeType::UAV, 1, 1},
+     };
+
+     const DescriptorSpaceDesc spaces[] = {
+         DescriptorSpaceDesc{0, 0, std::size(space0rd), space0rd},
+         DescriptorSpaceDesc{1, 4, std::size(space1rd), space1rd},
+     };
+
+     RootSignatureDesc rootSignatureDesc{};
+     rootSignatureDesc.spacesCount = std::size(spaces);
+     rootSignatureDesc.spacesDescs = spaces;
+     rootSignatureDesc.debugName = "RootSignature";
+
+     RootSignature* rootSignature = m_RHI->SerializeRootSignature(rootSignatureDesc);
+
+
     // ComputePSODesc psoDesc{};
     // psoDesc.CS.entrypoint = "main";
     // psoDesc.CS.bytecodeSize = bytecode.size();
@@ -97,6 +104,7 @@ void Application::Logic() noexcept {
     cmd->SetComputePSO(pso);
     cmd->SetHeap(heap, nullptr);
 #else
+    cmd->SetRootSignature(rootSignature);
     cmd->SetHeap(heap, nullptr);
     cmd->SetComputePSO(pso);
 #endif
