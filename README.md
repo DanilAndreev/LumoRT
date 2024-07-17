@@ -13,7 +13,7 @@ cmake --build build --target Test --config Debug
 ```
 
 ### Example settings
-> Attention: for now D3D12 is just one stable backend. It is enabled by default.
+> Attention: For now supported backends for this example are: D3D12
 #### Ray Tracing
 Add following to ```[EXAMPLE SETTINGS DEFINES]``` section:
 ```
@@ -21,6 +21,7 @@ Add following to ```[EXAMPLE SETTINGS DEFINES]``` section:
 ```
 Example sources: ```Test/Application.cpp```, ```shaders/compute```
 
+> Attention: For now supported backends for this example are: D3D12, Metal
 #### Compute
 Add following to ```[EXAMPLE SETTINGS DEFINES]``` section:
 ```
