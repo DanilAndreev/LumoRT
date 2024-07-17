@@ -62,7 +62,7 @@ endif()
 find_package(Python3 REQUIRED)
 
 add_dependencies(Test SCAR)
-#add_custom_command(TARGET Test POST_BUILD
-#        COMMAND ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/prebuild.py --compiler-path $<TARGET_FILE:SCAR> --api ${EXAMPLE_API} --example-id ${EXAMPLE_ID} --out-dir $<TARGET_FILE_DIR:Test>
-#        COMMAND_EXPAND_LISTS
-#)
+add_custom_command(TARGET Test POST_BUILD
+        COMMAND ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/prebuild.py --compiler-path $<TARGET_FILE:SCAR> --api ${EXAMPLE_API} --example-id ${EXAMPLE_ID} --out-dir $<TARGET_FILE_DIR:Test>
+        COMMAND_EXPAND_LISTS
+)

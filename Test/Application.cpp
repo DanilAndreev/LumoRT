@@ -98,7 +98,7 @@ void Application::Logic() noexcept {
     // psoDesc.spacesDescs = spaces;
     // ComputePSO* pso = m_RHI->CompileComputePSO(psoDesc);
 
-    ComputePSO* pso = m_RHI->CompileSCARComputePSO(bytecode.data(), bytecode.size(), "TestCPSO");
+    ComputePSO* pso = m_RHI->CompileSCARComputePSO(bytecode.data(), bytecode.size(), rootSignature, "TestCPSO");
 
     cmd->SetRootSignature(rootSignature);
     cmd->SetHeap(heap, nullptr);
