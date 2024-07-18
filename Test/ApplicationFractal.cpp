@@ -18,7 +18,7 @@ void ApplicationFractal::Init(RHINO::BackendAPI api) noexcept {
 }
 
 void ApplicationFractal::Logic() noexcept {
-    RDOCIntegration::StartCapture();
+    // RDOCIntegration::StartCapture();
 
     using namespace RHINO;
     DescriptorHeap* heap = m_RHI->CreateDescriptorHeap(DescriptorHeapType::SRV_CBV_UAV, 100, "MeinDescriptorHeap");
@@ -37,20 +37,29 @@ void ApplicationFractal::Logic() noexcept {
     Texture2D* color0 = m_RHI->CreateTexture2D(Dim3D{TEXTURE_SIZE_X, TEXTURE_SIZE_Y, 1}, 1, TextureFormat::R32_FLOAT, ResourceUsage::UnorderedAccess | ResourceUsage::CopySource, "color0");
     Texture2D* color1 = m_RHI->CreateTexture2D(Dim3D{64, 64, 1}, 1, TextureFormat::R32_FLOAT, ResourceUsage::UnorderedAccess, "color1");
     Buffer* constants = m_RHI->CreateBuffer(sizeof(FractalSettings), ResourceHeapType::Default, ResourceUsage::ConstantBuffer | ResourceUsage::CopyDest, 0, "Constants");
+    SamplerDesc samplerDesc{};
+    Sampler* sampler = m_RHI->CreateSampler(samplerDesc);
 
     heap->WriteCBV(WriteBufferDescriptorDesc{constants, 0, sizeof(FractalSettings), 0, 0});
     heap->WriteSRV(WriteTexture2DDescriptorDesc{color0, 1});
     heap->WriteUAV(WriteTexture2DDescriptorDesc{color0, 2});
     heap->WriteUAV(WriteTexture2DDescriptorDesc{color1, 3});
+    heap->WriteSMP(sampler, 10);
 
     DescriptorRangeDesc space0ranges[] = {
             {DescriptorRangeType::UAV, 2, 2},
             {DescriptorRangeType::CBV, 0, 1},
             {DescriptorRangeType::SRV, 1, 1},
     };
-    DescriptorSpaceDesc space0Desc{0, 0, std::size(space0ranges), space0ranges};
-    RootSignature* rootSignature = m_RHI->SerializeRootSignature({1, &space0Desc, "FractalRootSignature"});
+    DescriptorRangeDesc space1ranges[] = {
+            {DescriptorRangeType::Sampler, 0, 1},
+    };
+    DescriptorSpaceDesc spaceDescs[] = {
+            {0, 0, std::size(space0ranges), space0ranges},
+            {1, 10, std::size(space1ranges), space1ranges},
+    };
 
+    RootSignature* rootSignature = m_RHI->SerializeRootSignature({std::size(spaceDescs), spaceDescs, "FractalRootSignature"});
 
     std::ifstream fractalShaderFile{"fractal.scar", std::ios::binary | std::ios::ate};
     assert(fractalShaderFile.is_open());
@@ -84,7 +93,7 @@ void ApplicationFractal::Logic() noexcept {
 
     m_RHI->SemaphoreWaitFromHost(semaphore, 1, ~0);
 
-    RDOCIntegration::EndCapture();
+    // RDOCIntegration::EndCapture();
 }
 
 void ApplicationFractal::Release() noexcept {
