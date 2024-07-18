@@ -41,6 +41,8 @@ void ApplicationFractal::Logic() noexcept {
     Texture2D* color1 = m_RHI->CreateTexture2D(Dim3D{64, 64, 1}, 1, TextureFormat::R32_FLOAT, ResourceUsage::UnorderedAccess, "color1");
     Buffer* constants = m_RHI->CreateBuffer(sizeof(FractalSettings), ResourceHeapType::Default, ResourceUsage::ConstantBuffer | ResourceUsage::CopyDest, 0, "Constants");
     SamplerDesc samplerDesc{};
+    samplerDesc.borderColor = BorderColor::OpaqueWhite;
+    samplerDesc.comparisonFunc = ComparisonFunction::Always;
     Sampler* sampler = m_RHI->CreateSampler(samplerDesc);
 
     CBVSRVUAVHeap->WriteCBV(WriteBufferDescriptorDesc{constants, 0, sizeof(FractalSettings), 0, 0});
