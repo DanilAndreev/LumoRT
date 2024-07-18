@@ -18,10 +18,13 @@ void ApplicationFractal::Init(RHINO::BackendAPI api) noexcept {
 }
 
 void ApplicationFractal::Logic() noexcept {
-    // RDOCIntegration::StartCapture();
+#ifdef WIN32
+    RDOCIntegration::StartCapture();
+#endif
 
     using namespace RHINO;
-    DescriptorHeap* heap = m_RHI->CreateDescriptorHeap(DescriptorHeapType::SRV_CBV_UAV, 100, "MeinDescriptorHeap");
+    DescriptorHeap* CBVSRVUAVHeap = m_RHI->CreateDescriptorHeap(DescriptorHeapType::SRV_CBV_UAV, 100, "CBVSRVUAVHeap");
+    DescriptorHeap* SMPHeap = m_RHI->CreateDescriptorHeap(DescriptorHeapType::Sampler, 10, "SMPHeap");
     Semaphore* semaphore = m_RHI->CreateSyncSemaphore(0);
 
     Buffer* constatnsStaging = m_RHI->CreateBuffer(sizeof(FractalSettings), ResourceHeapType::Upload, ResourceUsage::CopySource, 0, "ConstantsStaging");
@@ -40,23 +43,23 @@ void ApplicationFractal::Logic() noexcept {
     SamplerDesc samplerDesc{};
     Sampler* sampler = m_RHI->CreateSampler(samplerDesc);
 
-    heap->WriteCBV(WriteBufferDescriptorDesc{constants, 0, sizeof(FractalSettings), 0, 0});
-    heap->WriteSRV(WriteTexture2DDescriptorDesc{color0, 1});
-    heap->WriteUAV(WriteTexture2DDescriptorDesc{color0, 2});
-    heap->WriteUAV(WriteTexture2DDescriptorDesc{color1, 3});
-    heap->WriteSMP(sampler, 10);
+    CBVSRVUAVHeap->WriteCBV(WriteBufferDescriptorDesc{constants, 0, sizeof(FractalSettings), 0, 0});
+    CBVSRVUAVHeap->WriteSRV(WriteTexture2DDescriptorDesc{color0, 1});
+    CBVSRVUAVHeap->WriteUAV(WriteTexture2DDescriptorDesc{color0, 2});
+    CBVSRVUAVHeap->WriteUAV(WriteTexture2DDescriptorDesc{color1, 3});
+    SMPHeap->WriteSMP(sampler, 0);
 
-    DescriptorRangeDesc space0ranges[] = {
+    DescriptorRangeDesc space0UAVCBVSRVranges[] = {
             {DescriptorRangeType::UAV, 2, 2},
             {DescriptorRangeType::CBV, 0, 1},
             {DescriptorRangeType::SRV, 1, 1},
     };
-    DescriptorRangeDesc space1ranges[] = {
+    DescriptorRangeDesc space1SMPranges[] = {
             {DescriptorRangeType::Sampler, 0, 1},
     };
     DescriptorSpaceDesc spaceDescs[] = {
-            {0, 0, std::size(space0ranges), space0ranges},
-            {1, 10, std::size(space1ranges), space1ranges},
+            {0, 0, std::size(space0UAVCBVSRVranges), space0UAVCBVSRVranges},
+            {1, 0, std::size(space1SMPranges), space1SMPranges},
     };
 
     RootSignature* rootSignature = m_RHI->SerializeRootSignature({std::size(spaceDescs), spaceDescs, "FractalRootSignature"});
@@ -77,7 +80,7 @@ void ApplicationFractal::Logic() noexcept {
     cmd->CopyBuffer(constatnsStaging, constants, 0, 0, sizeof(FractalSettings));
 
     cmd->SetRootSignature(rootSignature);
-    cmd->SetHeap(heap, nullptr);
+    cmd->SetHeap(CBVSRVUAVHeap, SMPHeap);
     cmd->SetComputePSO(fractalPSO);
     cmd->Dispatch({TEXTURE_SIZE_X / EXAMPLE_FRACTAL_THREADGROUP_X, TEXTURE_SIZE_Y / EXAMPLE_FRACTAL_THREADGROUP_Y, 1});
 
@@ -93,7 +96,9 @@ void ApplicationFractal::Logic() noexcept {
 
     m_RHI->SemaphoreWaitFromHost(semaphore, 1, ~0);
 
-    // RDOCIntegration::EndCapture();
+#ifdef WIN32
+    RDOCIntegration::EndCapture();
+#endif
 }
 
 void ApplicationFractal::Release() noexcept {
