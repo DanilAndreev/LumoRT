@@ -43,16 +43,12 @@ void ApplicationFractal::Logic() noexcept {
     heap->WriteUAV(WriteTexture2DDescriptorDesc{color0, 2});
     heap->WriteUAV(WriteTexture2DDescriptorDesc{color1, 3});
 
-    DescriptorRangeDesc space0RangeCBV{DescriptorRangeType::CBV, 0, 1};
-    DescriptorRangeDesc space0RangeSRV{DescriptorRangeType::SRV, 1, 1};
-    DescriptorRangeDesc space0RangeUAV{DescriptorRangeType::UAV, 2, 2};
-
-    DescriptorRangeDesc space0ranges[] = {space0RangeCBV, space0RangeSRV, space0RangeUAV};
-    DescriptorSpaceDesc space0Desc{};
-    space0Desc.space = 0;
-    space0Desc.offsetInDescriptorsFromTableStart = 0;
-    space0Desc.rangeDescCount = std::size(space0ranges);
-    space0Desc.rangeDescs = space0ranges;
+    DescriptorRangeDesc space0ranges[] = {
+            {DescriptorRangeType::UAV, 2, 2},
+            {DescriptorRangeType::CBV, 0, 1},
+            {DescriptorRangeType::SRV, 1, 1},
+    };
+    DescriptorSpaceDesc space0Desc{0, 0, std::size(space0ranges), space0ranges};
     RootSignature* rootSignature = m_RHI->SerializeRootSignature({1, &space0Desc, "FractalRootSignature"});
 
 
