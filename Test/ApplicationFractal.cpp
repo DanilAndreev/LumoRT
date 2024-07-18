@@ -30,10 +30,9 @@ void ApplicationFractal::Logic() noexcept {
     Buffer* constatnsStaging = m_RHI->CreateBuffer(sizeof(FractalSettings), ResourceHeapType::Upload, ResourceUsage::CopySource, 0, "ConstantsStaging");
     auto* mapped = static_cast<FractalSettings*>(m_RHI->MapMemory(constatnsStaging, 0, sizeof(FractalSettings)));
     assert(mapped);
-    mapped->leanX = 0.05f;
-    mapped->leanY = 1.0f;
-    mapped->moveX = -static_cast<float>(TEXTURE_SIZE_X) / 2;
-    mapped->moveY = 10.0f;
+    mapped->backbufferWidth = TEXTURE_SIZE_X;
+    mapped->backbufferHeight = TEXTURE_SIZE_Y;
+    mapped->time = 100.0f;
     m_RHI->UnmapMemory(constatnsStaging);
 
 
