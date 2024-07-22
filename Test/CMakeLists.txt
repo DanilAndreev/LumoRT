@@ -21,9 +21,10 @@ set(Files
         ApplicationFractal.h
 )
 
-add_executable(Test main.cpp ${Files})
+add_executable(Test WIN32 WinMain.cpp ${Files})
 
 target_compile_definitions(Test PUBLIC EXAMPLE_ID_${EXAMPLE_ID}=1 EXAMPLE_API_${EXAMPLE_API}=1)
+target_compile_definitions(Test PRIVATE RHINO_WIN32_SURFACE=1)
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../RHINO RHINO)
 target_link_libraries(Test PUBLIC RHINO)

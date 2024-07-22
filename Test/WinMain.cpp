@@ -1,10 +1,10 @@
 #include <Windows.h>
 #include <windowsx.h>
 
-#include "Application.h"
+#include "ApplicationFractal.h"
 
-extern HWND g_RHINO_HWND;
-extern HINSTANCE g_RHINO_HInstance;
+constexpr RHINO::BackendAPI RHI_BACKEND_API = RHINO::BackendAPI::D3D12;
+
 
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 ATOM RegMyWindowClass(HINSTANCE, LPCTSTR);
@@ -33,22 +33,28 @@ int APIENTRY WinMain(HINSTANCE hInstance,
                              hInstance, nullptr);
     if (!hWnd) return 2;
 
-    g_RHINO_HWND = hWnd;
-    g_RHINO_HInstance = hInstance;
-
-    Application application{};
-    application.Init();
+    ApplicationFractal application{};
+    application.Init(RHI_BACKEND_API);
+    application.InitSwapchain(hInstance, hWnd);
 
     MSG msg = {nullptr};
     int iGetOk = 0;
-    while ((iGetOk = GetMessage(&msg, nullptr, 0, 0)) != 0) {
-        if (iGetOk == -1) return 3;
 
-        application.Logic();
+    bool applicationShouldClose = false;
+    while (!applicationShouldClose) {
+        if (PeekMessage(&msg, hWnd, 0, 0, PM_REMOVE)) {
+            TranslateMessage(&msg);
+            DispatchMessage(&msg);
 
-        TranslateMessage(&msg);
-        DispatchMessage(&msg);
+            if (msg.message == WM_QUIT) {
+                applicationShouldClose = true;
+            }
+        }
+        else {
+            application.Logic();
+        }
     }
+    application.ReleaseSwapchain();
     application.Release();
     return static_cast<int>(msg.wParam);
 }
@@ -65,28 +71,17 @@ ATOM RegMyWindowClass(HINSTANCE hInst, LPCTSTR lpzClassName) {
 }
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
-    // if (message == WM_CREATE) {
-    //     SetWindowLongPtr(hWnd, GWLP_USERDATA,
-    //                      reinterpret_cast<LONG_PTR>(reinterpret_cast<CREATESTRUCT *>(lParam)->lpCreateParams));
-    // }
-    // auto *game = reinterpret_cast<Core::Win32GameRoot*>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
+    if (message == WM_CREATE) {
+        SetWindowLongPtr(hWnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(reinterpret_cast<CREATESTRUCT *>(lParam)->lpCreateParams));
+    }
+    LONG_PTR userPtr = GetWindowLongPtr(hWnd, GWLP_USERDATA);
 
     switch (message) {
-        // case WM_CREATE:
-        //     break;
-        // case WM_PAINT:
-        //     break;
-        // case WM_SIZE:
-        //     break;
-        // case WM_KEYDOWN:
-        //     break;
-        // case WM_KEYUP:
-        //     break;
-        // case WM_MOUSEMOVE:
-        //     break;
-        // case WM_DESTROY:
-        //     PostQuitMessage(0);
-        //     break;
+
+        case WM_DESTROY:
+        case WM_CLOSE:
+            PostQuitMessage(0);
+            break;
         default:
             return DefWindowProc(hWnd, message, wParam, lParam);
     }
