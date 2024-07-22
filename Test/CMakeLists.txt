@@ -24,7 +24,6 @@ set(Files
 add_executable(Test WIN32 WinMain.cpp ${Files})
 
 target_compile_definitions(Test PUBLIC EXAMPLE_ID_${EXAMPLE_ID}=1 EXAMPLE_API_${EXAMPLE_API}=1)
-target_compile_definitions(Test PRIVATE RHINO_WIN32_SURFACE=1)
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../RHINO RHINO)
 target_link_libraries(Test PUBLIC RHINO)
@@ -36,10 +35,11 @@ target_link_libraries(Test PUBLIC Math3D)
 target_include_directories(Test PUBLIC shaders)
 
 if(APPLE)
+    target_compile_definitions(Test PRIVATE RHINO_APPLE_SURFACE=1)
 else()
     target_link_libraries(Test PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/WinPixEventRuntime/bin/x64/WinPixEventRuntime.lib)
     target_include_directories(Test PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/WinPixEventRuntime/Include/)
-    target_compile_definitions(Test PRIVATE USE_PIX=1)
+    target_compile_definitions(Test PRIVATE RHINO_WIN32_SURFACE=1 USE_PIX=1)
     add_custom_command(TARGET Test POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/WinPixEventRuntime/bin/x64/WinPixEventRuntime.dll $<TARGET_FILE_DIR:Test>
             COMMAND_EXPAND_LISTS
