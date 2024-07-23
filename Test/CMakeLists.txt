@@ -21,7 +21,7 @@ set(Files
         ApplicationFractal.h
 )
 
-add_executable(Test WIN32 WinMain.cpp ${Files})
+add_executable(Test main.mm ${Files})
 
 target_compile_definitions(Test PUBLIC EXAMPLE_ID_${EXAMPLE_ID}=1 EXAMPLE_API_${EXAMPLE_API}=1)
 
@@ -56,6 +56,9 @@ else()
     endif ()
 
 endif()
+
+add_subdirectory(external/glfw)
+target_link_libraries(Test PUBLIC glfw)
 
 #add_custom_command(TARGET Test POST_BUILD
 #        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_RUNTIME_DLLS:Test> $<TARGET_FILE_DIR:Test>

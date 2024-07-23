@@ -9,7 +9,11 @@
 class ApplicationFractal {
 public:
     void Init(RHINO::BackendAPI api) noexcept;
+#ifdef WIN32
     void InitSwapchain(HINSTANCE hInstance, HWND hWnd) noexcept;
+#else
+    void InitSwapchain(void* surfaceDesc) noexcept;
+#endif
     void Logic() noexcept;
     void ReleaseSwapchain() noexcept;
     void Release() noexcept;

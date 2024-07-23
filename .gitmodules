@@ -1,3 +1,6 @@
 [submodule "RHINO"]
 	path = RHINO
 	url = git@github.com:DanilAndreev/RHINO.git
+[submodule "Test/external/glfw"]
+	path = Test/external/glfw
+	url = git@github.com:glfw/glfw.git

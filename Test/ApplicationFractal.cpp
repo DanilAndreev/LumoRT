@@ -70,18 +70,28 @@ void ApplicationFractal::Init(RHINO::BackendAPI api) noexcept {
     m_BlitPSO = m_RHI->CompileSCARComputePSO(blitShaderBytecode.data(), blitShaderBytecode.size(), m_RootSignature, "BlitComputePSO");
 }
 
+#ifdef WIN32
 void ApplicationFractal::InitSwapchain(HINSTANCE hInstance, HWND hWnd) noexcept {
+#else
+void ApplicationFractal::InitSwapchain(void* surfaceDesc) noexcept {
+#endif
     using namespace RHINO;
+#ifdef WIN32
     Win32SurfaceDesc surface{};
     surface.hWnd = hWnd;
     surface.hInstance = hInstance;
+#endif
 
     SwapchainDesc swapchainDesc{};
     swapchainDesc.format = TextureFormat::R8G8B8A8_UNORM;
     swapchainDesc.width = BACKBUFFER_SIZE_X;
     swapchainDesc.height = BACKBUFFER_SIZE_X;
     swapchainDesc.buffersCount = SWAPCHAIN_BUFFERS_COUNT;
+#ifdef WIN32
     swapchainDesc.surfaceDesc = &surface;
+#else
+    swapchainDesc.surfaceDesc = surfaceDesc;
+#endif
     swapchainDesc.windowed = true;
     m_Swapchain = m_RHI->CreateSwapchain(swapchainDesc);
 }
