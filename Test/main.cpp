@@ -1,6 +1,12 @@
+#define GLFW_INCLUDE_NONE
+#include <GLFW/glfw3.h>
+#define GLFW_EXPOSE_NATIVE_WIN32
+#include <GLFW/glfw3native.h>
+
 #include "Application.h"
 #include "ApplicationRT.h"
 #include "ApplicationFractal.h"
+#include <RHINOSwapchainPlatform.h>
 
 int main() {
 #ifdef EXAMPLE_ID_RT
@@ -23,7 +29,32 @@ int main() {
 #error "Unsupported API. Invalid EXAMPLE_API cmake cache var"
 #endif
 
+    glfwInit();
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+    GLFWwindow* glfwWindow = glfwCreateWindow(800, 600, "RHINO Example", NULL, NULL);
+    if (!glfwWindow) {
+        glfwTerminate();
+        exit(EXIT_FAILURE);
+    }
+    HWND win32Window = glfwGetWin32Window(glfwWindow);
+
+
     app.Init(api);
-    app.Logic();
+#ifdef EXAMPLE_ID_Fractal
+    RHINOWin32SurfaceDesc surfaceDesc{};
+    surfaceDesc.hWnd = win32Window;
+    surfaceDesc.hInstance = GetModuleHandle(NULL);
+
+    app.InitSwapchain(&surfaceDesc);
+#endif
+
+    while (!glfwWindowShouldClose(glfwWindow)) {
+        glfwPollEvents();
+        app.Logic();
+    }
+
+#ifdef EXAMPLE_ID_Fractal
+    app.ReleaseSwapchain();
+#endif
     app.Release();
 }

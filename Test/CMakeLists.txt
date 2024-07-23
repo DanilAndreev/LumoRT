@@ -21,22 +21,12 @@ set(Files
         ApplicationFractal.h
 )
 
-add_executable(Test main.mm ${Files})
-
-target_compile_definitions(Test PUBLIC EXAMPLE_ID_${EXAMPLE_ID}=1 EXAMPLE_API_${EXAMPLE_API}=1)
-
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../RHINO RHINO)
-target_link_libraries(Test PUBLIC RHINO)
-# target_link_libraries(Test PUBLIC SCARs)
-
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../Math3D Math3D)
-target_link_libraries(Test PUBLIC Math3D)
-
-target_include_directories(Test PUBLIC shaders)
 
 if(APPLE)
+    add_executable(Test main.mm ${Files})
     target_compile_definitions(Test PRIVATE RHINO_APPLE_SURFACE=1)
 else()
+    add_executable(Test main.cpp ${Files})
     target_link_libraries(Test PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/WinPixEventRuntime/bin/x64/WinPixEventRuntime.lib)
     target_include_directories(Test PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/WinPixEventRuntime/Include/)
     target_compile_definitions(Test PRIVATE RHINO_WIN32_SURFACE=1 USE_PIX=1)
@@ -56,6 +46,17 @@ else()
     endif ()
 
 endif()
+
+target_compile_definitions(Test PUBLIC EXAMPLE_ID_${EXAMPLE_ID}=1 EXAMPLE_API_${EXAMPLE_API}=1)
+
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../RHINO RHINO)
+target_link_libraries(Test PUBLIC RHINO)
+# target_link_libraries(Test PUBLIC SCARs)
+
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../Math3D Math3D)
+target_link_libraries(Test PUBLIC Math3D)
+
+target_include_directories(Test PUBLIC shaders)
 
 add_subdirectory(external/glfw)
 target_link_libraries(Test PUBLIC glfw)
