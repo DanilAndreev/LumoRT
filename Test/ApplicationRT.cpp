@@ -9,7 +9,7 @@
 
 #include "FrameDebuggerIntegration.h"
 
-#include <RaytracingHlslCompat.hlsli>
+#include <rt/RaytracingHlslCompat.hlsli>
 #include "Utils.h"
 
 constexpr size_t BACKBUFFER_WIDTH = 800;

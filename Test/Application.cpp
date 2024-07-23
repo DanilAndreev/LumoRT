@@ -107,7 +107,6 @@ void Application::Logic() noexcept {
 
     m_RHI->SubmitCommandList(cmd);
     m_RHI->SignalFromQueue(semaphore, 1);
-    cmd->Release();
 
     CommandList* cmd2 = m_RHI->AllocateCommandList("CMDList");
     cmd2->CopyBuffer(destUAV1, rbkUAV1, 0, 0, sizeof(int) * 64);
@@ -116,9 +115,11 @@ void Application::Logic() noexcept {
     m_RHI->SemaphoreWaitFromQueue(semaphore, 1);
     m_RHI->SubmitCommandList(cmd2);
     m_RHI->SignalFromQueue(semaphore, 2);
-    cmd2->Release();
 
     m_RHI->SemaphoreWaitFromHost(semaphore, 2, ~0);
+    cmd->Release();
+    cmd2->Release();
+
     auto* data1 = static_cast<int*>(m_RHI->MapMemory(rbkUAV1, 0, sizeof(int) * 64));
     auto* data2 = static_cast<int*>(m_RHI->MapMemory(rbkUAV2, 0, sizeof(int) * 64));
     auto* data3 = static_cast<int*>(m_RHI->MapMemory(rbkUAV3, 0, sizeof(int) * 64));

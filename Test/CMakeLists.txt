@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.25)
 project(Test)
 
-set(EXAMPLE_ID "Compute" CACHE STRING "Example identifier. Available: RT / Compute")
+set(EXAMPLE_ID "Compute" CACHE STRING "Example identifier. Available: RT / Compute / Fractal")
 set(EXAMPLE_API "D3D12" CACHE STRING "Example identifier. Available: D3D12 / VULKAN / METAL")
 
 
@@ -17,26 +17,19 @@ set(Files
         Utils.h
         ApplicationRT.cpp
         ApplicationRT.h
+        ApplicationFractal.cpp
+        ApplicationFractal.h
 )
 
-add_executable(Test main.cpp ${Files})
-
-target_compile_definitions(Test PUBLIC EXAMPLE_ID_${EXAMPLE_ID}=1 EXAMPLE_API_${EXAMPLE_API}=1)
-
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../RHINO RHINO)
-target_link_libraries(Test PUBLIC RHINO)
-# target_link_libraries(Test PUBLIC SCARs)
-
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../Math3D Math3D)
-target_link_libraries(Test PUBLIC Math3D)
-
-target_include_directories(Test PUBLIC shaders/rt)
 
 if(APPLE)
+    add_executable(Test main.mm ${Files})
+    target_compile_definitions(Test PRIVATE RHINO_APPLE_SURFACE=1)
 else()
+    add_executable(Test main.cpp ${Files})
     target_link_libraries(Test PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/WinPixEventRuntime/bin/x64/WinPixEventRuntime.lib)
     target_include_directories(Test PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/WinPixEventRuntime/Include/)
-    target_compile_definitions(Test PRIVATE USE_PIX=1)
+    target_compile_definitions(Test PRIVATE RHINO_WIN32_SURFACE=1 USE_PIX=1)
     add_custom_command(TARGET Test POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/WinPixEventRuntime/bin/x64/WinPixEventRuntime.dll $<TARGET_FILE_DIR:Test>
             COMMAND_EXPAND_LISTS
@@ -53,6 +46,20 @@ else()
     endif ()
 
 endif()
+
+target_compile_definitions(Test PUBLIC EXAMPLE_ID_${EXAMPLE_ID}=1 EXAMPLE_API_${EXAMPLE_API}=1)
+
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../RHINO RHINO)
+target_link_libraries(Test PUBLIC RHINO)
+# target_link_libraries(Test PUBLIC SCARs)
+
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../Math3D Math3D)
+target_link_libraries(Test PUBLIC Math3D)
+
+target_include_directories(Test PUBLIC shaders)
+
+add_subdirectory(external/glfw)
+target_link_libraries(Test PUBLIC glfw)
 
 #add_custom_command(TARGET Test POST_BUILD
 #        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_RUNTIME_DLLS:Test> $<TARGET_FILE_DIR:Test>

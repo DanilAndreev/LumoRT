@@ -1,0 +1,7 @@
+{
+  "psoType": "Compute",
+  "computeSettings": {
+    "entrypoint": "main",
+    "shaderSourceFilepath": "blit.hlsl"
+  }
+}

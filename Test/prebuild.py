@@ -3,6 +3,7 @@ import sys as sys
 from os import path
 from argparse import ArgumentParser
 from subprocess import Popen, PIPE
+import base64 as b64
 
 API_TO_LANG = {
     "D3D12": "DXIL",
@@ -21,7 +22,6 @@ class PSOCompileHelper:
             os.makedirs(path.dirname(out_filepath), exist_ok=True)
 
         compile_args = [desc_filepath]
-        compile_args += ["-o", out_filepath]
         compile_args += ["--O0"]
         compile_args += ["-t", self.lang]
 
@@ -31,12 +31,15 @@ class PSOCompileHelper:
         if process.returncode != 0:
             raise Exception(f"Failed to compile PSO. Compiler exited with error:\n{error.decode()}")
 
+        with open(out_filepath, "wb") as out_file:
+            out_file.write(b64.b64decode(output))
+
 
 if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("--compiler-path", required=True)
     parser.add_argument("--api", required=True, choices=["D3D12", "VULKAN", "METAL"])
-    parser.add_argument("--example-id", required=True, choices=["RT", "Compute"])
+    parser.add_argument("--example-id", required=True, choices=["RT", "Compute", "Fractal"])
     parser.add_argument("--out-dir", default="./")
 
 
@@ -56,6 +59,13 @@ if __name__ == "__main__":
             compileHelper.compile(path.join(shaders_dir, "compute", "compute.desc.json"),
                                   path.join(out_dir, "compute.scar"))
             print("Done compiling Compute archive: " + path.join(out_dir, "compute.scar"))
+        elif args.example_id == "Fractal":
+            print("Compiling Fractal archive")
+            compileHelper.compile(path.join(shaders_dir, "fractal", "fractal.desc.json"),
+                                  path.join(out_dir, "fractal.scar"))
+            compileHelper.compile(path.join(shaders_dir, "fractal", "blit.desc.json"),
+                                  path.join(out_dir, "blit.scar"))
+            print("Done compiling Fractal archive: " + path.join(out_dir, "fractal.scar"))
 
     except Exception as e:
         print(str(e), file=sys.stderr)
