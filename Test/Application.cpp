@@ -31,7 +31,7 @@ void Application::Logic() noexcept {
     using namespace RHINO;
     // RDOCIntegration::StartCapture();
 
-    DescriptorHeap* heap = m_RHI->CreateDescriptorHeap(DescriptorHeapType::SRV_CBV_UAV, 100, "Heap");
+    DescriptorHeap* heap = m_RHI->CreateDescriptorHeap(DescriptorHeapType::SRV_CBV_UAV, 10, "Heap");
     CommandList* cmd = m_RHI->AllocateCommandList("CMD");
     Semaphore* semaphore = m_RHI->CreateSyncSemaphore(0);
 
@@ -117,8 +117,8 @@ void Application::Logic() noexcept {
     m_RHI->SignalFromQueue(semaphore, 2);
 
     m_RHI->SemaphoreWaitFromHost(semaphore, 2, ~0);
-    cmd->Release();
-    cmd2->Release();
+    // cmd->Release();
+    // cmd2->Release();
 
     auto* data1 = static_cast<int*>(m_RHI->MapMemory(rbkUAV1, 0, sizeof(int) * 64));
     auto* data2 = static_cast<int*>(m_RHI->MapMemory(rbkUAV2, 0, sizeof(int) * 64));
