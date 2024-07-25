@@ -117,8 +117,8 @@ void Application::Logic() noexcept {
     m_RHI->SignalFromQueue(semaphore, 2);
 
     m_RHI->SemaphoreWaitFromHost(semaphore, 2, ~0);
-    // cmd->Release();
-    // cmd2->Release();
+    cmd->Release();
+    cmd2->Release();
 
     auto* data1 = static_cast<int*>(m_RHI->MapMemory(rbkUAV1, 0, sizeof(int) * 64));
     auto* data2 = static_cast<int*>(m_RHI->MapMemory(rbkUAV2, 0, sizeof(int) * 64));
@@ -142,6 +142,8 @@ void Application::Logic() noexcept {
     std::cout << "UAV3 result data: ";
     PrintVec(vdata3);
 
+    semaphore->Release();
+    rootSignature->Release();
     pso->Release();
     heap->Release();
     bufCBV->Release();
