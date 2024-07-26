@@ -51,8 +51,8 @@ void ApplicationFractal::Init(RHINO::BackendAPI api) noexcept {
             {DescriptorRangeType::Sampler, 0, 1},
     };
     DescriptorSpaceDesc spaceDescs[] = {
-            {0, 0, std::size(space0UAVCBVSRVranges), space0UAVCBVSRVranges},
-            {1, 0, std::size(space1SMPranges), space1SMPranges},
+            {DescriptorHeapType::SRV_CBV_UAV, 0, 0, std::size(space0UAVCBVSRVranges), space0UAVCBVSRVranges},
+            {DescriptorHeapType::Sampler, 1, 0, std::size(space1SMPranges), space1SMPranges},
     };
 
     m_RootSignature = m_RHI->SerializeRootSignature({std::size(spaceDescs), spaceDescs, "FractalRootSignature"});
@@ -120,6 +120,7 @@ void ApplicationFractal::Logic() noexcept {
     m_RHI->SignalFromQueue(semaphore, 1);
 
     m_RHI->SemaphoreWaitFromHost(semaphore, 1, ~0);
+    constatnsStaging->Release();
     m_RHI->SwapchainPresent(m_Swapchain, m_BackbufferSrc, BACKBUFFER_SIZE_X, BACKBUFFER_SIZE_Y);
 
 #ifdef WIN32

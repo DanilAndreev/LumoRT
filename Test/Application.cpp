@@ -77,8 +77,8 @@ void Application::Logic() noexcept {
      };
 
      const DescriptorSpaceDesc spaces[] = {
-         DescriptorSpaceDesc{0, 0, std::size(space0rd), space0rd},
-         DescriptorSpaceDesc{1, 4, std::size(space1rd), space1rd},
+         DescriptorSpaceDesc{DescriptorHeapType::SRV_CBV_UAV, 0, 0, std::size(space0rd), space0rd},
+         DescriptorSpaceDesc{DescriptorHeapType::SRV_CBV_UAV, 1, 4, std::size(space1rd), space1rd},
      };
 
      RootSignatureDesc rootSignatureDesc{};
