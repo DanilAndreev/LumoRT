@@ -93,10 +93,10 @@ void ApplicationFractal::Logic() noexcept {
     Semaphore* semaphore = m_RHI->CreateSyncSemaphore(0);
 
     CommandList* cmd = m_RHI->AllocateCommandList("FrameCommandList");
-    ResourceBarrierDesc barrierDesc{};
-    barrierDesc.resource = m_Color;
-    barrierDesc.type = ResourceBarrierType::Transition;
-    cmd->ResourceBarrier(barrierDesc);
+    // ResourceBarrierDesc barrierDesc{};
+    // barrierDesc.resource = m_Color;
+    // barrierDesc.type = ResourceBarrierType::Transition;
+    // cmd->ResourceBarrier(barrierDesc);
 
     Buffer* constatnsStaging = m_RHI->CreateBuffer(sizeof(FractalSettings), ResourceHeapType::Upload, ResourceUsage::CopySource, 0, "ConstantsStaging");
     auto* mapped = static_cast<FractalSettings*>(m_RHI->MapMemory(constatnsStaging, 0, sizeof(FractalSettings)));
