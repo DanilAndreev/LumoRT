@@ -1,4 +1,5 @@
 #include "ApplicationFractal.h"
+#include "Application.h"
 
 #define GLFW_INCLUDE_NONE
 #import <GLFW/glfw3.h>
@@ -6,8 +7,8 @@
 #import <GLFW/glfw3native.h>
 
 #import <Foundation/Foundation.h>
-#import <QuartzCore/CAMetalLayer.h>
 #import <RHINOSwapchainPlatform.h>
+
 
 int main() {
     glfwInit();
@@ -19,20 +20,29 @@ int main() {
     }
     NSWindow* metalWindow = glfwGetCocoaWindow(glfwWindow);
 
-    ApplicationFractal app;
-
     constexpr auto api = RHINO::BackendAPI::Metal;
-    app.Init(api);
     RHINOAppleSurfaceDesc surfaceDesc{};
     surfaceDesc.window = metalWindow;
+#ifdef EXAMPLE_ID_Compute
+    Application app;
+    app.Init(api);
+#elif EXAMPLE_ID_Fractal
+    ApplicationFractal app;
+    app.Init(api);
     app.InitSwapchain(&surfaceDesc);
+#else
+#error "Invalid example id"
+#endif
+
 
     while (!glfwWindowShouldClose(glfwWindow)) {
         glfwPollEvents();
         app.Logic();
     }
 
+#ifdef EXAMPLE_ID_Fractal
     app.ReleaseSwapchain();
+#endif
     app.Release();
 
     glfwTerminate();
