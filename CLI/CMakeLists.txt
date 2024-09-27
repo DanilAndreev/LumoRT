@@ -2,6 +2,10 @@ cmake_minimum_required(VERSION 3.25)
 project(LumoRTCLI)
 
 set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
 
 find_package(Python3 REQUIRED)
 find_package(Git REQUIRED)
@@ -30,10 +34,15 @@ if(APPLE)
                 COMMAND_ERROR_IS_FATAL LAST)
         message("Finished building OpenUSD")
     endif()
+    set(PXR_USD_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/OpenUSD)
 
     add_executable(LumoRTCLI ${SourceFiles} ${HeaderFiles})
     target_compile_definitions(LumoRTCLI PRIVATE RHINO_APPLE_SURFACE=1)
     target_precompile_headers(LumoRTCLI PRIVATE pch.h)
+
+    find_package(USD REQUIRED)
+    target_include_directories(LumoRTCLI PRIVATE ${USD_INCLUDE_DIR})
+    target_link_libraries(LumoRTCLI PRIVATE ${USD_LIBRARY_DIR}/libusd_ms.dylib)
 else()
     if(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/vcpkg)
         execute_process(COMMAND ${GIT_EXECUTABLE} clone git@github.com:microsoft/vcpkg.git --single-branch
