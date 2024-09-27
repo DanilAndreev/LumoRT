@@ -17,7 +17,7 @@ set(SourceFiles
 
 
 if(APPLE)
-    add_executable(LumoRT main.mm ${Files})
+    add_library(LumoRT ${SourceFiles} ${HeaderFiles})
     target_compile_definitions(LumoRT PRIVATE RHINO_APPLE_SURFACE=1)
 else()
     add_library(LumoRT ${SourceFiles} ${HeaderFiles})
