@@ -23,7 +23,7 @@ if(APPLE)
                     ECHO_ERROR_VARIABLE
                     COMMAND_ERROR_IS_FATAL LAST)
         endif()
-        message("Building OpenUSD... This may take a while, go make you coffe ;)")
+        message("Building OpenUSD... This may take a while, go make yourself a coffe ;)")
         execute_process(COMMAND ${Python3_EXECUTABLE} build_scripts/build_usd.py ${CMAKE_CURRENT_BINARY_DIR}/OpenUSD --no-python --no-tools --no-examples --no-tutorials --no-debug-python --build-monolithic
                 WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/OpenUSD_SRC
                 ECHO_ERROR_VARIABLE
