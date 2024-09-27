@@ -3,5 +3,6 @@
   <component name="VcsDirectoryMappings">
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/RHINO" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/Test/external/glfw" vcs="Git" />
   </component>
 </project>
