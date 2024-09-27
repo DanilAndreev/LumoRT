@@ -4,6 +4,3 @@
 [submodule "Test/external/glfw"]
 	path = Test/external/glfw
 	url = git@github.com:glfw/glfw.git
-[submodule "OpenUSD"]
-	path = OpenUSD
-	url = git@github.com:PixarAnimationStudios/OpenUSD.git
