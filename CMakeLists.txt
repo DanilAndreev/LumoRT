@@ -12,17 +12,17 @@ set(HeaderFiles
 set(SourceFiles
         source/main.cpp
         CLI/pch.h
-        CLI/main.cpp
 )
 
 
 if(APPLE)
     add_library(LumoRT ${SourceFiles} ${HeaderFiles})
     target_compile_definitions(LumoRT PRIVATE RHINO_APPLE_SURFACE=1)
+
 else()
     add_library(LumoRT ${SourceFiles} ${HeaderFiles})
-    target_precompile_headers(LumoRT PRIVATE source/pch.h)
 endif()
+target_precompile_headers(LumoRT PRIVATE source/pch.h)
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/RHINO RHINO)
 target_link_libraries(LumoRT PUBLIC RHINO)
