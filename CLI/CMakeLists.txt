@@ -5,7 +5,8 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules)
+list(APPEND CMAKE_PREFIX_PATH ${CMAKE_CURRENT_BINARY_DIR}/OpenUSD)
 
 find_package(Python3 REQUIRED)
 find_package(Git REQUIRED)
@@ -28,7 +29,10 @@ if(APPLE)
                     COMMAND_ERROR_IS_FATAL LAST)
         endif()
         message("Building OpenUSD... This may take a while, go make yourself a coffe ;)")
-        execute_process(COMMAND ${Python3_EXECUTABLE} build_scripts/build_usd.py ${CMAKE_CURRENT_BINARY_DIR}/OpenUSD --no-python --no-tools --no-examples --no-tutorials --no-debug-python --build-monolithic
+        execute_process(COMMAND ${Python3_EXECUTABLE} build_scripts/build_usd.py ${CMAKE_CURRENT_BINARY_DIR}/OpenUSD
+                --no-python --no-debug-python --no-tools --no-examples --no-tutorials --no-imaging --no-usdview
+                --no-materialx --no-draco --no-alembic --no-hdf5
+                --build-monolithic
                 WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/OpenUSD_SRC
                 ECHO_ERROR_VARIABLE
                 COMMAND_ERROR_IS_FATAL LAST)
@@ -40,9 +44,9 @@ if(APPLE)
     target_compile_definitions(LumoRTCLI PRIVATE RHINO_APPLE_SURFACE=1)
     target_precompile_headers(LumoRTCLI PRIVATE pch.h)
 
-    find_package(USD REQUIRED)
-    target_include_directories(LumoRTCLI PRIVATE ${USD_INCLUDE_DIR})
-    target_link_libraries(LumoRTCLI PRIVATE ${USD_LIBRARY_DIR}/libusd_ms.dylib)
+    find_package(pxr REQUIRED)
+    target_include_directories(LumoRTCLI PRIVATE ${PXR_INCLUDE_DIRS})
+    target_link_libraries(LumoRTCLI PRIVATE ${PXR_usd_ms_LIBRARY})
 else()
     if(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/vcpkg)
         execute_process(COMMAND ${GIT_EXECUTABLE} clone git@github.com:microsoft/vcpkg.git --single-branch
@@ -69,8 +73,8 @@ cmake_path(GET CMAKE_CURRENT_SOURCE_DIR PARENT_PATH LUMO_RT_ROOT_DIR)
 add_subdirectory(${LUMO_RT_ROOT_DIR} LumoRT)
 target_link_libraries(LumoRTCLI PUBLIC LumoRT)
 
-#add_custom_command(TARGET LumoRTCLI POST_BUILD
-#        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_RUNTIME_DLLS:LumoRTCLI> $<TARGET_FILE_DIR:LumoRTCLI>
-#        COMMAND_EXPAND_LISTS
-#)
+add_custom_command(TARGET LumoRTCLI POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_RUNTIME_DLLS:LumoRTCLI> $<TARGET_FILE_DIR:LumoRTCLI>
+        COMMAND_EXPAND_LISTS
+)
 
