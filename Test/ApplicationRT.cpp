@@ -12,15 +12,16 @@
 #include <rt/RaytracingHlslCompat.hlsli>
 #include "Utils.h"
 
-constexpr size_t BACKBUFFER_WIDTH = 800;
-constexpr size_t BACKBUFFER_HEIGHT = 600;
+constexpr uint32_t BACKBUFFER_SIZE_X = 512;
+constexpr uint32_t BACKBUFFER_SIZE_Y = 512;
+constexpr uint32_t SWAPCHAIN_BUFFERS_COUNT = 3;
 
 static SceneConstantBuffer CreateCameraConstants() noexcept {
     FXMVECTOR eye = {4.0f, 4.0f, 4.0f};
     FXMVECTOR at = {0.0f, 0.0f, 0.0f};
     FXMVECTOR up = {0.0f, 1.0f, 0.0f};
 
-    float aspectRatio = static_cast<float>(BACKBUFFER_HEIGHT) / static_cast<float>(BACKBUFFER_WIDTH);
+    float aspectRatio = static_cast<float>(BACKBUFFER_SIZE_Y) / static_cast<float>(BACKBUFFER_SIZE_X);
 
     float fovAngleY = 45.0f;
     XMMATRIX view = XMMatrixLookAtLH(eye, at, up);
@@ -39,76 +40,69 @@ void ApplicationRT::Init(RHINO::BackendAPI api) noexcept {
     using namespace RHINO;
     m_RHI = CreateRHINO(api);
     m_RHI->Initialize();
-}
-
-void ApplicationRT::Logic() noexcept {
-    using namespace Math3D;
-    using namespace RHINO;
-    RDOCIntegration::StartCapture();
 
     Semaphore* semaphore = m_RHI->CreateSyncSemaphore(0);
 
-    DescriptorHeap* heap = m_RHI->CreateDescriptorHeap(DescriptorHeapType::SRV_CBV_UAV, 3, "Heap");
-    Texture2D* backbuffer = m_RHI->CreateTexture2D({BACKBUFFER_WIDTH, BACKBUFFER_HEIGHT}, 1, TextureFormat::R32G32B32A32_FLOAT, ResourceUsage::UnorderedAccess | ResourceUsage::CopySource, "BackBuffer");
+    m_Heap = m_RHI->CreateDescriptorHeap(DescriptorHeapType::SRV_CBV_UAV, 3, "Heap");
+    m_Backbuffer = m_RHI->CreateTexture2D({BACKBUFFER_SIZE_X, BACKBUFFER_SIZE_Y}, 1, TextureFormat::R8G8B8A8_UNORM, ResourceUsage::UnorderedAccess | ResourceUsage::CopySource, "BackBuffer");
 
     WriteTexture2DDescriptorDesc textureDescriptorDesc{};
-    textureDescriptorDesc.texture = backbuffer;
+    textureDescriptorDesc.texture = m_Backbuffer;
     textureDescriptorDesc.offsetInHeap = 1;
-    heap->WriteUAV(textureDescriptorDesc);
+    m_Heap->WriteUAV(textureDescriptorDesc);
 
     Index indices[] =
-    {
-        3,1,0,
-        2,1,3,
+            {
+                    3, 1, 0,
+                    2, 1, 3,
 
-        6,4,5,
-        7,4,6,
+                    6, 4, 5,
+                    7, 4, 6,
 
-        11,9,8,
-        10,9,11,
+                    11, 9, 8,
+                    10, 9, 11,
 
-        14,12,13,
-        15,12,14,
+                    14, 12, 13,
+                    15, 12, 14,
 
-        19,17,16,
-        18,17,19,
+                    19, 17, 16,
+                    18, 17, 19,
 
-        22,20,21,
-        23,20,22
-    };
+                    22, 20, 21,
+                    23, 20, 22};
 
     Vertex vertices[] =
-    {
-        { XMFLOAT3(-1.0f, 1.0f, -1.0f), XMFLOAT3(0.0f, 1.0f, 0.0f) },
-        { XMFLOAT3(1.0f, 1.0f, -1.0f), XMFLOAT3(0.0f, 1.0f, 0.0f) },
-        { XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT3(0.0f, 1.0f, 0.0f) },
-        { XMFLOAT3(-1.0f, 1.0f, 1.0f), XMFLOAT3(0.0f, 1.0f, 0.0f) },
+            {
+                    {XMFLOAT3(-1.0f, 1.0f, -1.0f), XMFLOAT3(0.0f, 1.0f, 0.0f)},
+                    {XMFLOAT3(1.0f, 1.0f, -1.0f), XMFLOAT3(0.0f, 1.0f, 0.0f)},
+                    {XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT3(0.0f, 1.0f, 0.0f)},
+                    {XMFLOAT3(-1.0f, 1.0f, 1.0f), XMFLOAT3(0.0f, 1.0f, 0.0f)},
 
-        { XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT3(0.0f, -1.0f, 0.0f) },
-        { XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT3(0.0f, -1.0f, 0.0f) },
-        { XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT3(0.0f, -1.0f, 0.0f) },
-        { XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT3(0.0f, -1.0f, 0.0f) },
+                    {XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT3(0.0f, -1.0f, 0.0f)},
+                    {XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT3(0.0f, -1.0f, 0.0f)},
+                    {XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT3(0.0f, -1.0f, 0.0f)},
+                    {XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT3(0.0f, -1.0f, 0.0f)},
 
-        { XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT3(-1.0f, 0.0f, 0.0f) },
-        { XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT3(-1.0f, 0.0f, 0.0f) },
-        { XMFLOAT3(-1.0f, 1.0f, -1.0f), XMFLOAT3(-1.0f, 0.0f, 0.0f) },
-        { XMFLOAT3(-1.0f, 1.0f, 1.0f), XMFLOAT3(-1.0f, 0.0f, 0.0f) },
+                    {XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT3(-1.0f, 0.0f, 0.0f)},
+                    {XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT3(-1.0f, 0.0f, 0.0f)},
+                    {XMFLOAT3(-1.0f, 1.0f, -1.0f), XMFLOAT3(-1.0f, 0.0f, 0.0f)},
+                    {XMFLOAT3(-1.0f, 1.0f, 1.0f), XMFLOAT3(-1.0f, 0.0f, 0.0f)},
 
-        { XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT3(1.0f, 0.0f, 0.0f) },
-        { XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT3(1.0f, 0.0f, 0.0f) },
-        { XMFLOAT3(1.0f, 1.0f, -1.0f), XMFLOAT3(1.0f, 0.0f, 0.0f) },
-        { XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT3(1.0f, 0.0f, 0.0f) },
+                    {XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT3(1.0f, 0.0f, 0.0f)},
+                    {XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT3(1.0f, 0.0f, 0.0f)},
+                    {XMFLOAT3(1.0f, 1.0f, -1.0f), XMFLOAT3(1.0f, 0.0f, 0.0f)},
+                    {XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT3(1.0f, 0.0f, 0.0f)},
 
-        { XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT3(0.0f, 0.0f, -1.0f) },
-        { XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT3(0.0f, 0.0f, -1.0f) },
-        { XMFLOAT3(1.0f, 1.0f, -1.0f), XMFLOAT3(0.0f, 0.0f, -1.0f) },
-        { XMFLOAT3(-1.0f, 1.0f, -1.0f), XMFLOAT3(0.0f, 0.0f, -1.0f) },
+                    {XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT3(0.0f, 0.0f, -1.0f)},
+                    {XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT3(0.0f, 0.0f, -1.0f)},
+                    {XMFLOAT3(1.0f, 1.0f, -1.0f), XMFLOAT3(0.0f, 0.0f, -1.0f)},
+                    {XMFLOAT3(-1.0f, 1.0f, -1.0f), XMFLOAT3(0.0f, 0.0f, -1.0f)},
 
-        { XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT3(0.0f, 0.0f, 1.0f) },
-        { XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT3(0.0f, 0.0f, 1.0f) },
-        { XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT3(0.0f, 0.0f, 1.0f) },
-        { XMFLOAT3(-1.0f, 1.0f, 1.0f), XMFLOAT3(0.0f, 0.0f, 1.0f) },
-    };
+                    {XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT3(0.0f, 0.0f, 1.0f)},
+                    {XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT3(0.0f, 0.0f, 1.0f)},
+                    {XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT3(0.0f, 0.0f, 1.0f)},
+                    {XMFLOAT3(-1.0f, 1.0f, 1.0f), XMFLOAT3(0.0f, 0.0f, 1.0f)},
+            };
     Buffer* vertexStaging = m_RHI->CreateBuffer(sizeof(vertices), ResourceHeapType::Upload, ResourceUsage::CopySource, 0, "VertexBStaging");
     void* mappedVertexStaging = m_RHI->MapMemory(vertexStaging, 0, sizeof(vertices));
     memcpy(mappedVertexStaging, vertices, sizeof(vertices));
@@ -146,7 +140,7 @@ void ApplicationRT::Logic() noexcept {
     cbDescriptorDesc.size = sizeof(sceneConstantPayload);
     cbDescriptorDesc.bufferOffset = 0;
     cbDescriptorDesc.offsetInHeap = 2;
-    heap->WriteCBV(cbDescriptorDesc);
+    m_Heap->WriteCBV(cbDescriptorDesc);
 
     // -------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -196,7 +190,7 @@ void ApplicationRT::Logic() noexcept {
     WriteTLASDescriptorDesc tlasDescriptorDesc{};
     tlasDescriptorDesc.tlas = tlas;
     tlasDescriptorDesc.offsetInHeap = 0;
-    heap->WriteSRV(tlasDescriptorDesc);
+    m_Heap->WriteSRV(tlasDescriptorDesc);
 
     // -------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -227,7 +221,7 @@ void ApplicationRT::Logic() noexcept {
     rootSignatureDesc.spacesCount = 1;
     rootSignatureDesc.spacesDescs = &spaceDesc;
     rootSignatureDesc.debugName = "RootSignature";
-    RootSignature* rootSignature = m_RHI->SerializeRootSignature(rootSignatureDesc);
+    m_RootSignature = m_RHI->SerializeRootSignature(rootSignatureDesc);
 
     std::ifstream smSourceFile("rt.scar", std::ios::binary | std::ios::ate);
     assert(smSourceFile.is_open());
@@ -256,35 +250,56 @@ void ApplicationRT::Logic() noexcept {
     RTPSODesc rtpsoDesc{};
     // rtpsoDesc.shaderModules = shaderModules;
     // rtpsoDesc.shaderModulesCount = std::size(shaderModules);
-    rtpsoDesc.rootSignature = rootSignature;
+    rtpsoDesc.rootSignature = m_RootSignature;
     rtpsoDesc.records = records;
     rtpsoDesc.recordsCount = std::size(records);
     rtpsoDesc.maxTraceRecursionDepth = 1;
     rtpsoDesc.maxPayloadSizeInBytes = 32;
     rtpsoDesc.maxAttributeSizeInBytes = 32;
     rtpsoDesc.debugName = "RTPSO";
-    RTPSO* pso = m_RHI->CreateSCARRTPSO(smSource.data(), smSource.size(), rtpsoDesc);
+    m_PSO = m_RHI->CreateSCARRTPSO(smSource.data(), smSource.size(), rtpsoDesc);
 
     CommandList* rtpsoCMD = m_RHI->AllocateCommandList("RTPSO CMD");
-    rtpsoCMD->BuildRTPSO(pso);
+    rtpsoCMD->BuildRTPSO(m_PSO);
     m_RHI->SubmitCommandList(rtpsoCMD);
     m_RHI->SignalFromQueue(semaphore, 4);
     m_RHI->SemaphoreWaitFromHost(semaphore, 4, ~0);
     rtpsoCMD->Release();
+}
+
+void ApplicationRT::InitSwapchain(void* surfaceDesc) noexcept {
+    using namespace RHINO;
+
+    SwapchainDesc swapchainDesc{};
+    swapchainDesc.format = TextureFormat::R8G8B8A8_UNORM;
+    swapchainDesc.width = BACKBUFFER_SIZE_X;
+    swapchainDesc.height = BACKBUFFER_SIZE_X;
+    swapchainDesc.buffersCount = SWAPCHAIN_BUFFERS_COUNT;
+    swapchainDesc.surfaceDesc = surfaceDesc;
+    swapchainDesc.windowed = true;
+    m_Swapchain = m_RHI->CreateSwapchain(swapchainDesc);
+}
+
+void ApplicationRT::Logic() noexcept {
+    using namespace Math3D;
+    using namespace RHINO;
+    RDOCIntegration::StartCapture();
+
+    Semaphore* semaphore = m_RHI->CreateSyncSemaphore(0);
 
     // -------------------------------------------------------------------------------------------------------------------------------------------
     CommandList* traceCMD = m_RHI->AllocateCommandList("TraceCMD");
 
-    traceCMD->SetRootSignature(rootSignature);
+    traceCMD->SetRootSignature(m_RootSignature);
 
     DispatchRaysDesc dispatchRaysDesc{};
-    dispatchRaysDesc.width = BACKBUFFER_WIDTH;
-    dispatchRaysDesc.height = BACKBUFFER_HEIGHT;
-    dispatchRaysDesc.pso = pso;
+    dispatchRaysDesc.width = BACKBUFFER_SIZE_X;
+    dispatchRaysDesc.height = BACKBUFFER_SIZE_Y;
+    dispatchRaysDesc.pso = m_PSO;
     dispatchRaysDesc.rayGenerationShaderRecordIndex = 0;
     dispatchRaysDesc.missShaderStartRecordIndex = 1;
     dispatchRaysDesc.hitGroupStartRecordIndex = 2;
-    dispatchRaysDesc.CDBSRVUAVHeap = heap;
+    dispatchRaysDesc.CDBSRVUAVHeap = m_Heap;
     dispatchRaysDesc.samplerHeap = nullptr;
     traceCMD->DispatchRays(dispatchRaysDesc);
 
@@ -292,7 +307,17 @@ void ApplicationRT::Logic() noexcept {
     m_RHI->SignalFromQueue(semaphore, 5);
     m_RHI->SemaphoreWaitFromHost(semaphore, 5, ~0);
     traceCMD->Release();
+
+    m_RHI->SwapchainPresent(m_Swapchain, m_Backbuffer, BACKBUFFER_SIZE_X, BACKBUFFER_SIZE_Y);
     RDOCIntegration::EndCapture();
+}
+
+void ApplicationRT::ReleaseSwapchain() noexcept {
+    m_Swapchain->Release();
+    m_Backbuffer->Release();
+    m_Heap->Release();
+    m_PSO->Release();
+    m_RootSignature->Release();
 }
 
 void ApplicationRT::Release() noexcept {

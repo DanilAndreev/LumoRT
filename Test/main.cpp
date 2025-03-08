@@ -40,7 +40,7 @@ int main() {
 
 
     app.Init(api);
-#ifdef EXAMPLE_ID_Fractal
+#if defined(EXAMPLE_ID_Fractal) || defined(EXAMPLE_ID_RT)
     RHINOWin32SurfaceDesc surfaceDesc{};
     surfaceDesc.hWnd = win32Window;
     surfaceDesc.hInstance = GetModuleHandle(NULL);
@@ -53,7 +53,7 @@ int main() {
         app.Logic();
     }
 
-#ifdef EXAMPLE_ID_Fractal
+#ifdef defined(EXAMPLE_ID_Fractal) || defined(EXAMPLE_ID_RT)
     app.ReleaseSwapchain();
 #endif
     app.Release();
