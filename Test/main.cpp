@@ -53,7 +53,7 @@ int main() {
         app.Logic();
     }
 
-#ifdef defined(EXAMPLE_ID_Fractal) || defined(EXAMPLE_ID_RT)
+#if defined(EXAMPLE_ID_Fractal) || defined(EXAMPLE_ID_RT)
     app.ReleaseSwapchain();
 #endif
     app.Release();
