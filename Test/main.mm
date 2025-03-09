@@ -1,3 +1,4 @@
+#include "ApplicationRT.h"
 #include "ApplicationFractal.h"
 #include "Application.h"
 
@@ -30,6 +31,10 @@ int main() {
     ApplicationFractal app;
     app.Init(api);
     app.InitSwapchain(&surfaceDesc);
+#elif EXAMPLE_ID_RT
+    ApplicationRT app;
+    app.Init(api);
+    app.InitSwapchain(&surfaceDesc);
 #else
 #error "Invalid example id"
 #endif
@@ -41,6 +46,8 @@ int main() {
     }
 
 #ifdef EXAMPLE_ID_Fractal
+    app.ReleaseSwapchain();
+#elif EXAMPLE_ID_RT
     app.ReleaseSwapchain();
 #endif
     app.Release();

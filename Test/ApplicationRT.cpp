@@ -1,5 +1,3 @@
-#ifdef WIN32
-
 #include <cassert>
 #include <fstream>
 #include <iostream>
@@ -283,7 +281,9 @@ void ApplicationRT::InitSwapchain(void* surfaceDesc) noexcept {
 void ApplicationRT::Logic() noexcept {
     using namespace Math3D;
     using namespace RHINO;
+#ifdef WIN32
     RDOCIntegration::StartCapture();
+#endif // WIN32
 
     Semaphore* semaphore = m_RHI->CreateSyncSemaphore(0);
 
@@ -309,7 +309,10 @@ void ApplicationRT::Logic() noexcept {
     traceCMD->Release();
 
     m_RHI->SwapchainPresent(m_Swapchain, m_Backbuffer, BACKBUFFER_SIZE_X, BACKBUFFER_SIZE_Y);
+#ifdef WIN32
     RDOCIntegration::EndCapture();
+#endif // WIN32
+
 }
 
 void ApplicationRT::ReleaseSwapchain() noexcept {
@@ -325,5 +328,3 @@ void ApplicationRT::Release() noexcept {
     m_RHI->Release();
     delete m_RHI;
 }
-
-#endif // WIN32

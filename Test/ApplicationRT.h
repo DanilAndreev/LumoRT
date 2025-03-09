@@ -1,8 +1,6 @@
 #pragma once
 
 #ifdef WIN32
-
-#ifdef WIN32
 #include <Windows.h>
 #endif // WIN32
 
@@ -26,4 +24,3 @@ protected:
     RHINO::Texture2D* m_Backbuffer = nullptr;
 };
 
-#endif // WIN32
