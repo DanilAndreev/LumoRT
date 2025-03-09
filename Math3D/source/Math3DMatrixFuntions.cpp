@@ -6,9 +6,16 @@
 
 namespace Math3D {
     Float4x4 operator*(const Float4x4 &lh, const Float4x4 &rh) noexcept {
-//        Float4 res{};
-//        return res;
-        return {};
+        Float4x4 res{};
+        //TODO: add SSR AVX intrinsics
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 4; j++) {
+                for (int k = 0; k < 4; k++) {
+                    res[i][j] += lh[i][k] * rh[k][j];
+                }
+            }
+        }
+        return res;
     }
 
     Float4 operator*(const Float4x4& lh, const Float4& rh) noexcept {

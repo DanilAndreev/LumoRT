@@ -17,20 +17,19 @@ constexpr uint32_t BACKBUFFER_SIZE_Y = 512;
 constexpr uint32_t SWAPCHAIN_BUFFERS_COUNT = 3;
 
 static SceneConstantBuffer CreateCameraConstants() noexcept {
-    FXMVECTOR eye = {4.0f, 4.0f, 4.0f};
-    FXMVECTOR at = {0.0f, 0.0f, 0.0f};
-    FXMVECTOR up = {0.0f, 1.0f, 0.0f};
+    Float4 eye = {4.0f, 4.0f, 4.0f, 1.0f};
+    Float3 at = {0.0f, 0.0f, 0.0f};
+    Float3 up = {0.0f, 1.0f, 0.0f};
 
     float aspectRatio = static_cast<float>(BACKBUFFER_SIZE_Y) / static_cast<float>(BACKBUFFER_SIZE_X);
-
     float fovAngleY = 45.0f;
-    XMMATRIX view = XMMatrixLookAtLH(eye, at, up);
-    XMMATRIX proj = XMMatrixPerspectiveFovLH(XMConvertToRadians(fovAngleY), aspectRatio, 1.0f, 125.0f);
-    XMMATRIX viewProj = view * proj;
+
+    Float4x4 view = LookAt(eye, at, up);
+    Float4x4 proj = PerspectiveWithFOVY(deg2rad(fovAngleY), aspectRatio, 1.0f, 125.0f);
+    Float4x4 viewProj = view * proj;
 
     SceneConstantBuffer result{};
-
-    result.projectionToWorld = XMMatrixTranspose(XMMatrixInverse(nullptr, viewProj));
+    result.projectionToWorld = Transpose(Inverse(viewProj));
     result.cameraPosition = eye;
     result.cameraPosition = {4.0f, 4.0f, 4.0f, 1.0f};
     return result;
@@ -38,6 +37,7 @@ static SceneConstantBuffer CreateCameraConstants() noexcept {
 
 void ApplicationRT::Init(RHINO::BackendAPI api) noexcept {
     using namespace RHINO;
+    using namespace Math3D;
     m_RHI = CreateRHINO(api);
     m_RHI->Initialize();
 
@@ -73,35 +73,35 @@ void ApplicationRT::Init(RHINO::BackendAPI api) noexcept {
 
     Vertex vertices[] =
             {
-                    {XMFLOAT3(-1.0f, 1.0f, -1.0f), XMFLOAT3(0.0f, 1.0f, 0.0f)},
-                    {XMFLOAT3(1.0f, 1.0f, -1.0f), XMFLOAT3(0.0f, 1.0f, 0.0f)},
-                    {XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT3(0.0f, 1.0f, 0.0f)},
-                    {XMFLOAT3(-1.0f, 1.0f, 1.0f), XMFLOAT3(0.0f, 1.0f, 0.0f)},
+                    {Float3{-1.0f, 1.0f, -1.0f}, Float3{0.0f, 1.0f, 0.0f}},
+                    {Float3{1.0f, 1.0f, -1.0f}, Float3{0.0f, 1.0f, 0.0f}},
+                    {Float3{1.0f, 1.0f, 1.0f}, Float3{0.0f, 1.0f, 0.0f}},
+                    {Float3{-1.0f, 1.0f, 1.0f}, Float3{0.0f, 1.0f, 0.0f}},
 
-                    {XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT3(0.0f, -1.0f, 0.0f)},
-                    {XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT3(0.0f, -1.0f, 0.0f)},
-                    {XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT3(0.0f, -1.0f, 0.0f)},
-                    {XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT3(0.0f, -1.0f, 0.0f)},
+                    {Float3{-1.0f, -1.0f, -1.0f}, Float3{0.0f, -1.0f, 0.0f}},
+                    {Float3{1.0f, -1.0f, -1.0f}, Float3{0.0f, -1.0f, 0.0f}},
+                    {Float3{1.0f, -1.0f, 1.0f}, Float3{0.0f, -1.0f, 0.0f}},
+                    {Float3{-1.0f, -1.0f, 1.0f}, Float3{0.0f, -1.0f, 0.0f}},
 
-                    {XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT3(-1.0f, 0.0f, 0.0f)},
-                    {XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT3(-1.0f, 0.0f, 0.0f)},
-                    {XMFLOAT3(-1.0f, 1.0f, -1.0f), XMFLOAT3(-1.0f, 0.0f, 0.0f)},
-                    {XMFLOAT3(-1.0f, 1.0f, 1.0f), XMFLOAT3(-1.0f, 0.0f, 0.0f)},
+                    {Float3{-1.0f, -1.0f, 1.0f}, Float3{-1.0f, 0.0f, 0.0f}},
+                    {Float3{-1.0f, -1.0f, -1.0f}, Float3{-1.0f, 0.0f, 0.0f}},
+                    {Float3{-1.0f, 1.0f, -1.0f}, Float3{-1.0f, 0.0f, 0.0f}},
+                    {Float3{-1.0f, 1.0f, 1.0f}, Float3{-1.0f, 0.0f, 0.0f}},
 
-                    {XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT3(1.0f, 0.0f, 0.0f)},
-                    {XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT3(1.0f, 0.0f, 0.0f)},
-                    {XMFLOAT3(1.0f, 1.0f, -1.0f), XMFLOAT3(1.0f, 0.0f, 0.0f)},
-                    {XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT3(1.0f, 0.0f, 0.0f)},
+                    {Float3{1.0f, -1.0f, 1.0f}, Float3{1.0f, 0.0f, 0.0f}},
+                    {Float3{1.0f, -1.0f, -1.0f}, Float3{1.0f, 0.0f, 0.0f}},
+                    {Float3{1.0f, 1.0f, -1.0f}, Float3{1.0f, 0.0f, 0.0f}},
+                    {Float3{1.0f, 1.0f, 1.0f}, Float3{1.0f, 0.0f, 0.0f}},
 
-                    {XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT3(0.0f, 0.0f, -1.0f)},
-                    {XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT3(0.0f, 0.0f, -1.0f)},
-                    {XMFLOAT3(1.0f, 1.0f, -1.0f), XMFLOAT3(0.0f, 0.0f, -1.0f)},
-                    {XMFLOAT3(-1.0f, 1.0f, -1.0f), XMFLOAT3(0.0f, 0.0f, -1.0f)},
+                    {Float3{-1.0f, -1.0f, -1.0f}, Float3{0.0f, 0.0f, -1.0f}},
+                    {Float3{1.0f, -1.0f, -1.0f}, Float3{0.0f, 0.0f, -1.0f}},
+                    {Float3{1.0f, 1.0f, -1.0f}, Float3{0.0f, 0.0f, -1.0f}},
+                    {Float3{-1.0f, 1.0f, -1.0f}, Float3{0.0f, 0.0f, -1.0f}},
 
-                    {XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT3(0.0f, 0.0f, 1.0f)},
-                    {XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT3(0.0f, 0.0f, 1.0f)},
-                    {XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT3(0.0f, 0.0f, 1.0f)},
-                    {XMFLOAT3(-1.0f, 1.0f, 1.0f), XMFLOAT3(0.0f, 0.0f, 1.0f)},
+                    {Float3{-1.0f, -1.0f, 1.0f}, Float3{0.0f, 0.0f, 1.0f}},
+                    {Float3{1.0f, -1.0f, 1.0f}, Float3{0.0f, 0.0f, 1.0f}},
+                    {Float3{1.0f, 1.0f, 1.0f}, Float3{0.0f, 0.0f, 1.0f}},
+                    {Float3{-1.0f, 1.0f, 1.0f}, Float3{0.0f, 0.0f, 1.0f}},
             };
     Buffer* vertexStaging = m_RHI->CreateBuffer(sizeof(vertices), ResourceHeapType::Upload, ResourceUsage::CopySource, 0, "VertexBStaging");
     void* mappedVertexStaging = m_RHI->MapMemory(vertexStaging, 0, sizeof(vertices));
