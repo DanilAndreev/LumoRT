@@ -174,7 +174,7 @@ void ApplicationRT::Init(RHINO::BackendAPI api) noexcept {
     tlasDesc.blasInstances = &blasInstanceDesc;
     tlasDesc.blasInstancesCount = 1;
 
-    ASPrebuildInfo tlasPrebuild = m_RHI->GetBLASPrebuildInfo(blasDesc);
+    ASPrebuildInfo tlasPrebuild = m_RHI->GetTLASPrebuildInfo(tlasDesc);
     Buffer* tlasScratch = m_RHI->CreateBuffer(tlasPrebuild.scratchBufferSizeInBytes, ResourceHeapType::Default, ResourceUsage::UnorderedAccess, 0, "TLAS Scratch");
 
     CommandList* tlasCMD = m_RHI->AllocateCommandList("TLAS CMD");
