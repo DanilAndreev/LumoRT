@@ -298,9 +298,11 @@ void ApplicationRT::Logic() noexcept {
     dispatchRaysDesc.pso = m_PSO;
     dispatchRaysDesc.rayGenerationShaderRecordIndex = 0;
     dispatchRaysDesc.missShaderStartRecordIndex = 1;
+    dispatchRaysDesc.missShaderRecordsCount = 1;
     dispatchRaysDesc.hitGroupStartRecordIndex = 2;
-    dispatchRaysDesc.CDBSRVUAVHeap = m_Heap;
-    dispatchRaysDesc.samplerHeap = nullptr;
+    dispatchRaysDesc.hitGroupRecordsCount = 1;
+    dispatchRaysDesc.CBVSRVUAVHeap = m_Heap;
+    dispatchRaysDesc.SMPHeap = nullptr;
     traceCMD->DispatchRays(dispatchRaysDesc);
 
     m_RHI->SubmitCommandList(traceCMD);

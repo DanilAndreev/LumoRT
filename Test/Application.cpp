@@ -100,7 +100,7 @@ void Application::Logic() noexcept {
      ComputePSO* pso = m_RHI->CompileSCARComputePSO(bytecode.data(), bytecode.size(), rootSignature, "ComputePSO");
 
     cmd->SetRootSignature(rootSignature);
-    cmd->SetHeap(heap, nullptr);
+    cmd->SetHeap(heap, 0, nullptr, 0);
     cmd->SetComputePSO(pso);
 
     cmd->Dispatch({1, 1, 1});

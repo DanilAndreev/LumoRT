@@ -22,7 +22,7 @@ void ApplicationFractal::Init(RHINO::BackendAPI api) noexcept {
     m_RHI->Initialize();
 
     m_CBVSRVUAVHeap = m_RHI->CreateDescriptorHeap(DescriptorHeapType::SRV_CBV_UAV, 100, "CBVSRVUAVHeap");
-    m_SMPHeap = m_RHI->CreateDescriptorHeap(DescriptorHeapType::Sampler, 10, "SMPHeap");
+    m_SMPHeap = m_RHI->CreateDescriptorHeap(DescriptorHeapType::SMP, 10, "SMPHeap");
 
     m_Color = m_RHI->CreateTexture2D(Dim3D{TEXTURE_SIZE_X, TEXTURE_SIZE_Y, 1}, 1, TextureFormat::R32_FLOAT, ResourceUsage::UnorderedAccess | ResourceUsage::CopySource, "color0");
     m_BackbufferSrc = m_RHI->CreateTexture2D(Dim3D{BACKBUFFER_SIZE_X, BACKBUFFER_SIZE_Y, 1}, 1, TextureFormat::R8G8B8A8_UNORM, ResourceUsage::UnorderedAccess | ResourceUsage::CopySource, "BackbufferSrc");
@@ -48,11 +48,11 @@ void ApplicationFractal::Init(RHINO::BackendAPI api) noexcept {
             {DescriptorRangeType::SRV, 1, 1},
     };
     DescriptorRangeDesc space1SMPranges[] = {
-            {DescriptorRangeType::Sampler, 0, 1},
+            {DescriptorRangeType::SMP, 0, 1},
     };
     DescriptorSpaceDesc spaceDescs[] = {
             {DescriptorHeapType::SRV_CBV_UAV, 0, 0, std::size(space0UAVCBVSRVranges), space0UAVCBVSRVranges},
-            {DescriptorHeapType::Sampler, 1, 0, std::size(space1SMPranges), space1SMPranges},
+            {DescriptorHeapType::SMP, 1, 0, std::size(space1SMPranges), space1SMPranges},
     };
 
     m_RootSignature = m_RHI->SerializeRootSignature({std::size(spaceDescs), spaceDescs, "FractalRootSignature"});
@@ -109,7 +109,7 @@ void ApplicationFractal::Logic() noexcept {
     cmd->CopyBuffer(constatnsStaging, m_Constants, 0, 0, sizeof(FractalSettings));
 
     cmd->SetRootSignature(m_RootSignature);
-    cmd->SetHeap(m_CBVSRVUAVHeap, m_SMPHeap);
+    cmd->SetHeap(m_CBVSRVUAVHeap, 0, m_SMPHeap, 0);
     cmd->SetComputePSO(m_FractalPSO);
     cmd->Dispatch({TEXTURE_SIZE_X / EXAMPLE_FRACTAL_THREADGROUP_X, TEXTURE_SIZE_Y / EXAMPLE_FRACTAL_THREADGROUP_Y, 1});
 
