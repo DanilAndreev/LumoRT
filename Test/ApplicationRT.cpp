@@ -143,7 +143,6 @@ void ApplicationRT::Init(RHINO::BackendAPI api) noexcept {
     // -------------------------------------------------------------------------------------------------------------------------------------------
 
     BLASDesc blasDesc{BLASPrimitiveType::Triangles};
-    blasDesc.flags = GeometryFlags::Opaque;
     blasDesc.triangles.indexBuffer = indexBuffer;
     blasDesc.triangles.indexCount = std::size(indices);
     blasDesc.triangles.indexFormat = IndexFormat::R16_UINT;
@@ -168,6 +167,7 @@ void ApplicationRT::Init(RHINO::BackendAPI api) noexcept {
     // -------------------------------------------------------------------------------------------------------------------------------------------
     BLASInstanceDesc blasInstanceDesc{};
     blasInstanceDesc.blas = blas;
+    blasInstanceDesc.flags = BLASInstanceFlags::Opaque;
     // blasInstanceDesc.transform = ;
     blasInstanceDesc.instanceID = 0;
 
