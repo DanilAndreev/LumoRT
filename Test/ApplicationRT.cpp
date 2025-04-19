@@ -142,16 +142,17 @@ void ApplicationRT::Init(RHINO::BackendAPI api) noexcept {
 
     // -------------------------------------------------------------------------------------------------------------------------------------------
 
-    BLASDesc blasDesc{};
-    blasDesc.indexBuffer = indexBuffer;
-    blasDesc.indexCount = std::size(indices);
-    blasDesc.indexFormat = IndexFormat::R16_UINT;
-    blasDesc.vertexBuffer = vertexBuffer;
-    blasDesc.vertexCount = std::size(vertices);
-    blasDesc.vertexStride = sizeof(Vertex);
-    blasDesc.vertexFormat = TextureFormat::R32G32B32_FLOAT;
-    blasDesc.transformBuffer = nullptr;
-    blasDesc.transformBufferStartOffset = 0;
+    BLASDesc blasDesc{BLASPrimitiveType::Triangles};
+    blasDesc.flags = GeometryFlags::Opaque;
+    blasDesc.triangles.indexBuffer = indexBuffer;
+    blasDesc.triangles.indexCount = std::size(indices);
+    blasDesc.triangles.indexFormat = IndexFormat::R16_UINT;
+    blasDesc.triangles.vertexBuffer = vertexBuffer;
+    blasDesc.triangles.vertexCount = std::size(vertices);
+    blasDesc.triangles.vertexStride = sizeof(Vertex);
+    blasDesc.triangles.vertexFormat = TextureFormat::R32G32B32_FLOAT;
+    blasDesc.triangles.transformBuffer = nullptr;
+    blasDesc.triangles.transformBufferStartOffset = 0;
 
     ASPrebuildInfo blasPrebuild = m_RHI->GetBLASPrebuildInfo(blasDesc);
     Buffer* blasScratch = m_RHI->CreateBuffer(blasPrebuild.scratchBufferSizeInBytes, ResourceHeapType::Default, ResourceUsage::UnorderedAccess, 0, "BLAS Scratch");
